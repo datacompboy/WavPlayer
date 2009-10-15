@@ -1,0 +1,53 @@
+<html>
+<head><title>WavPlayer - flash wav/au player for arbitrary samplerate and PCM/G711 codecs</title>
+<script>
+function getPlayer(pid) {
+	var obj = document.getElementById(pid);
+	if (obj.doPlay) return obj;
+	for(i=0; i<obj.childNodes.length; i++) {
+		var child = obj.childNodes[i];
+		if (child.tagName == "EMBED") return child;
+	}
+}
+function doPlay(fname) {
+	var player = getPlayer('haxe');
+	player.doPlay(fname);
+}
+function doStop() {
+	var player = getPlayer('haxe');
+	player.doStop();
+}
+</script>
+</head>
+<body bgcolor="#dddddd">
+
+<a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
+<a href="javascript:doPlay('direct-79012029585-1995.au')">doPlay('direct-79012029585-1995.au')</a>
+<a href="javascript:doStop()">doStop()</a>
+<br/>
+
+<object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
+		width="20"
+	height="20"
+	id="haxe"
+	align="middle">
+<param name="movie" value="wavplayer.swf?sound=test-vf-44100.au"/>
+<param name="allowScriptAccess" value="always" />
+<param name="quality" value="high" />
+<param name="scale" value="noscale" />
+<param name="salign" value="lt" />
+<param name="bgcolor" value="#dddddd"/>
+<embed src="wavplayer.swf?sound=test-vf-44100.au"
+	   bgcolor="#dddddd"
+	   width="20"
+	   height="20"
+	   name="haxe"
+	   quality="high"
+	   align="middle"
+	   allowScriptAccess="always"
+	   type="application/x-shockwave-flash"
+	   pluginspage="http://www.macromedia.com/go/getflashplayer"
+/>
+</object>
+</body>
+</html>
