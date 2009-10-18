@@ -20,26 +20,27 @@ class DecoderPCM implements fmt.Decoder {
 	public var sampleSize : Int;
 	var divisor : Int;
 	var shift : Int;
-	public function new(bps : Int) {
+	public function new(bps : Int, ?bs : Int) {
 		sampleSize = Math.ceil(bps / 8);
 		if (sampleSize == 0) throw "Unsupported BPS";
 		divisor = 1 << (bps-1);
 		shift = 1 << bps;
 	}
-	public function decode( Buf : Dynamic, Off: Int) : Float {
+	public function decode( InBuf : haxe.io.BytesData, Off: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		var Sample: Int = 0;
 		switch (sampleSize) {
-		  case 1: Sample = Buf[Off];
+		  case 1: Sample = InBuf[Off];
 				  Sample -= divisor; // 1byte stored as unsigned
-		  case 2: Sample = Std.int(Buf[Off] + Buf[Off+1] * 256);
+		  case 2: Sample = Std.int(InBuf[Off] + InBuf[Off+1] * 256);
 				  if (Sample > divisor) Sample -= shift;
-		  case 3: Sample = Std.int(Buf[Off] + Buf[Off+1] * 256 + Buf[Off+2] * 65536);
+		  case 3: Sample = Std.int(InBuf[Off] + InBuf[Off+1] * 256 + InBuf[Off+2] * 65536);
 				  if (Sample > divisor) Sample -= shift;
-		  case 4: Sample = Std.int(Buf[Off] + Buf[Off+1] * 256 + Buf[Off+2] * 65536 + Buf[Off+3] * 16777216);
+		  case 4: Sample = Std.int(InBuf[Off] + InBuf[Off+1] * 256 + InBuf[Off+2] * 65536 + InBuf[Off+3] * 16777216);
 				  if (Sample > divisor) Sample -= shift;
-		  default: for(c in 0...sampleSize) Sample += Buf[Off+c] << (8*c);
+		  default: for(c in 0...sampleSize) Sample += InBuf[Off+c] << (8*c);
 				   if (Sample > divisor) Sample -= shift;
 		}
-		return Sample / divisor;
+		OutBuf[OutOff] = Sample / divisor;
+		return 1;
 	}
 }

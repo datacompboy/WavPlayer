@@ -44,6 +44,9 @@ class Player extends flash.events.EventDispatcher {
 		} else
 		if ((~/[.]wav$/i).match(fname)) {
 			Sound = new fmt.FileWav();
+		} else
+		if ((~/[.]gsm$/i).match(fname)) {
+			Sound = new fmt.FileGsm();
 		} else {
 			trace("Unsupported file type");
 			throw "Unsupported file type";

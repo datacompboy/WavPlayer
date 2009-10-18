@@ -129,12 +129,35 @@ class FileWav implements fmt.File {
 						  case 65534:
 							trace("File in (Bad?) PCM");
 							sndDecoder = new DecoderPCM(bps);
+						  case 2:
+							trace("File in MS ADPCM");
+							Readed = -1; return;
+							//sndDecoder = new DecoderMSADPCM(bps);
 						  case 6:
 							trace("File in 8-bit G.711 a-law format");
 							sndDecoder = new DecoderG711a(bps);
 						  case 7:
 							trace("File in 8-bit G.711 mu-law format");
 							sndDecoder = new DecoderG711u(bps);
+						  case 17:
+							trace("File in IMA ADPCM");
+							Readed = -1; return;
+							//sndDecoder = new DecoderIMAADPCM(bps);
+						  case 20:
+							trace("File in G.723 ADPCM");
+							Readed = -1; return;
+							//sndDecoder = new DecoderG723ADPCM(bps);
+						  case 49:
+							trace("File in GSM 6.10");
+							sndDecoder = new DecoderGSM(bps, align);
+						  case 64:
+							trace("File in G.721 ADPCM");
+							Readed = -1; return;
+							//sndDecoder = new DecoderG721ADPCM(bps);
+						  case 80:
+							trace("File in MPEG");
+							//sndDecoder = new DecoderMPEG(bps);
+							Readed = -1; return;
 						  default:
 							trace("File in unknown/unsupported format #"+format);
 							Readed = -1;
@@ -145,11 +168,11 @@ class FileWav implements fmt.File {
 							SoundBuffer.push(new Array<Float>());
 						chunkSize = sndDecoder.sampleSize*channels;
 						if (align > chunkSize) align -= chunkSize; else align = 0;
-
 						if (Readed+i-dataOff == dataSize+8) {
 							State++;
 							dataOff = Readed+i;
 						}
+						trace("chunkSize = "+chunkSize+"; sampleSize="+sndDecoder.sampleSize+"; align="+align);
 					}
 				}
 				else if (Readed+i-dataOff < dataSize+8) {
@@ -207,7 +230,7 @@ class FileWav implements fmt.File {
 						}
 					  case 4:
 						dataSize = DW;
-						trace("dataSize3 = "+dataSize);
+						trace("dataSize(data) = "+dataSize);
 						// Todo: support multiple "DATA" chunks in file, skipping unknown blocks
 					}
 					i += 4;
@@ -215,13 +238,14 @@ class FileWav implements fmt.File {
 				if (Readed+i-dataOff == 8) {
 					State++;
 					dataOff = Readed+i;
-					trace("Get data block begin");
+					trace("Get data block begin (dataOff="+dataOff+"; State="+State+"; bufsize="+bufsize+")");
 				}
 			  default: // Read sound stream
+				trace("Read strem with ("+(bufsize-i)+") bytes");
 				var chk = 0;
 				while(bufsize - i >= chunkSize) {
 					for(j in 0...channels) {
-						SoundBuffer[j].push( sndDecoder.decode(Buffer, i) );
+						sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
 						i += sndDecoder.sampleSize;
 					}
 					i += align;

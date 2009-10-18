@@ -131,7 +131,7 @@ class FileAu implements fmt.File {
 				var chk = 0;
 				while(bufsize - i > chunkSize) {
 					for(j in 0...channels) {
-						SoundBuffer[j].push( sndDecoder.decode(Buffer, i) );
+						sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
 						i += sndDecoder.sampleSize;
 					}
 					chk++;

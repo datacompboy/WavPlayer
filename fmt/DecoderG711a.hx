@@ -21,12 +21,12 @@ package fmt;
 
 class DecoderG711a implements fmt.Decoder {
 	public var sampleSize : Int;
-	public function new(bps : Int) {
-		if (bps > 8) throw "Unsupported BPS";
+	public function new(bps : Int, ?bs : Int) {
+		if (bps != 8) throw "Unsupported BPS";
 		sampleSize = 1;
 	}
 	static var exp_lut : Array<Int> = [ 0, 264, 528, 1056, 2112, 4224, 8448, 16896 ];
-	public function decode( Buf : Dynamic, Off: Int) : Float {
+	public function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff : Int) : Int {
 		/*=================================================================================
 		**		The following routines came from the sox-12.15 (Sound eXcahcnge) distribution.
 		*/
@@ -45,7 +45,7 @@ class DecoderG711a implements fmt.Decoder {
 		** Input: 8 bit ulaw sample
 		** Output: signed 16 bit linear sample
 		*/
-		var Alawbyte = Buf[Off];
+		var Alawbyte = InBuf[InOff];
 		var sign, exponent, mantissa, sample ;
 		Alawbyte ^= 0x55 ;
 		sign = ( Alawbyte & 0x80 ) ;
@@ -59,6 +59,7 @@ class DecoderG711a implements fmt.Decoder {
 					sample = (Alawbyte << 4) + 8 ;
 		if (sign == 0)
 					sample = -sample ;
-		return sample / 32768.0;
+		OutBuf[OutOff] = sample / 32768.0;
+		return 1;
 	}
 }

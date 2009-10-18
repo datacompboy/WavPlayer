@@ -21,6 +21,8 @@ function doStop() {
 </head>
 <body bgcolor="#dddddd">
 
+<a href="javascript:doPlay()">doPlay()</a>
+<a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
 <a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
 <a href="javascript:doPlay('direct-79012029585-1995.au')">doPlay('direct-79012029585-1995.au')</a>
 <a href="javascript:doStop()">doStop()</a>
@@ -31,19 +33,20 @@ function doStop() {
 	height="400"
 	id="haxe"
 	align="middle">
-<param name="movie" value="wavplayer-debug.swf?sound=test-vf-44100.au"/>
+<param name="movie" value="wavplayer-debug.swf?sound=test.WAV"/>
 <param name="allowScriptAccess" value="always" />
 <param name="quality" value="high" />
 <param name="scale" value="noscale" />
 <param name="salign" value="lt" />
 <param name="bgcolor" value="#ffffff"/>
-<embed src="wavplayer-debug.swf?sound=test-vf-44100.au"
+<embed src="wavplayer-debug.swf?sound=test.WAV"
 	   bgcolor="#ffffff"
 	   width="800"
 	   height="400"
 	   name="haxe"
 	   quality="high"
 	   align="middle"
+       scale="noscale"
 	   allowScriptAccess="always"
 	   type="application/x-shockwave-flash"
 	   pluginspage="http://www.macromedia.com/go/getflashplayer"

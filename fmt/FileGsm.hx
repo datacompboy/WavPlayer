@@ -13,11 +13,17 @@
  * version 2 for more details (a copy is included in the LICENSE file that
  * accompanied this code).
  */
-
 package fmt;
 
-// Generic sound-decoder interface.
-interface Decoder {
-	var sampleSize : Int;
-	function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff: Int ) : Int;
+// FileRaw: stream raw file reader. Subclass it to define used sound decoder
+class FileGsm extends fmt.FileRaw {
+	public function new() {
+		super();
+		rate = 8000;
+		channels = 1;
+		chunkSize = 33;
+		align = 0;
+		sndDecoder = new DecoderGSM(264, 33);
+		init();
+	}
 }
