@@ -59,13 +59,17 @@ class AudioSink extends flash.events.EventDispatcher {
 		trace("playing");
 		sch = s.play();
 		trace(sch);
+		sch.addEventListener(flash.events.Event.SOUND_COMPLETE, soundCompleteHandler);
 		dispatchEvent(new PlayerEvent(PlayerEvent.PLAYING));
+	}
+
+	public function soundCompleteHandler(e:flash.events.Event):Void {
+		dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
 	}
 
 	public function stop() : Void {
 		if (sch != null) {
 			sch.stop();
-			dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
 		}
 	}
 
@@ -91,7 +95,6 @@ class AudioSink extends flash.events.EventDispatcher {
 			}
 		} else if (missing > 0) {
 			trace("not enough data, stopping");
-			dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
 			//stop();
 		}
 	}

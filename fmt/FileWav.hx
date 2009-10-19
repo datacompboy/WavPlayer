@@ -25,6 +25,8 @@ class FileWav implements fmt.File {
 	var State: Int;
 	var dataOff: Int;
 	var dataSize: Int;
+	var fileSize: Int;
+	var dataLen: Null<Float>;
 	var format: Int;
 	var rate : Int;
 	var channels : Int;
@@ -40,6 +42,7 @@ class FileWav implements fmt.File {
 		Readed = 0;
 		dataOff = 0;
 		dataSize = 0;
+		fileSize = 0;
 		format = 0;
 		rate = 0;
 		channels = 0;
@@ -47,6 +50,28 @@ class FileWav implements fmt.File {
 		State = 0;
 		bps = 0;
 		align = 0;
+	}
+
+	// Set known full file length
+	public function setSize(size: Int): Void
+	{
+		fileSize = size;
+	}
+	// Get estimated sound length
+	public function getEtaLength(): Null<Float>
+	{
+		if (Readed < 0 || State<4 || rate==0 || chunkSize==0 || dataSize==0) return null;
+		if (dataLen == null && dataSize != 0)
+			dataLen = (Math.floor(dataSize/chunkSize)*sndDecoder.sampleLength)/rate;
+		return dataLen;
+	}
+	// Get loaded sound length
+	public function getLoadedLength(): Float
+	{
+		if (rate == 0 || chunkSize == 0 || dataOff == 0 || State<4)
+			return 0.0;
+		else
+			return ((Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -188,7 +213,7 @@ class FileWav implements fmt.File {
 						dataOff = Readed+i;
 					}
 				}
-			  case 2: // Read data header
+			  case 2: // Read any misc header
 				if (Readed+i-dataOff < 8) {
 					if (bufsize-i < 4) break;
 					var DW = Buffer[i+3]*16777216+Buffer[i+2]*65536+Buffer[i+1]*256+Buffer[i];
@@ -231,6 +256,8 @@ class FileWav implements fmt.File {
 					  case 4:
 						dataSize = DW;
 						trace("dataSize(data) = "+dataSize);
+						if (dataSize <= 0 && fileSize > 0)
+							dataSize = fileSize - dataOff; // Try to get data size
 						// Todo: support multiple "DATA" chunks in file, skipping unknown blocks
 					}
 					i += 4;

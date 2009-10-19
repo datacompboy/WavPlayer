@@ -17,10 +17,24 @@ function doStop() {
 	var player = getPlayer('haxe');
 	player.doStop();
 }
+function log(str) {
+	var log = document.getElementById('jsLog');
+	log.innerHTML += str+"<br/>";
+}
+function Handler(event, arg1, arg2) {
+	log("Got event ["+event+"]("+arg1+", "+arg2+")");
+}
+function init() {
+	setTimeout(function() {
+		var player = getPlayer('haxe');
+		log("Init events:");
+		log("Event(*) = "+player.attachHandler('*', "Handler"));
+	}, 1000);
+}
 </script>
 </head>
-<body bgcolor="#dddddd">
-
+<body bgcolor="#dddddd" onload="init()">
+<div id="jsLog" style="border:1px solid red"></div>
 <a href="javascript:doPlay()">doPlay()</a>
 <a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
 <a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
@@ -29,7 +43,7 @@ function doStop() {
 <br/>
 
 <object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-		width="800"
+		width="1200"
 	height="400"
 	id="haxe"
 	align="middle">
@@ -41,7 +55,7 @@ function doStop() {
 <param name="bgcolor" value="#ffffff"/>
 <embed src="wavplayer-debug.swf?sound=test.WAV"
 	   bgcolor="#ffffff"
-	   width="800"
+	   width="1200"
 	   height="400"
 	   name="haxe"
 	   quality="high"

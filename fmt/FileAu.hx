@@ -23,6 +23,8 @@ class FileAu implements fmt.File {
 	var Readed: Int;
 	var dataOff: Int;
 	var dataSize: Int;
+	var fileSize: Int;
+	var dataLen: Null<Float>;
 	var format: Int;
 	var rate : Int;
 	var channels : Int;
@@ -36,10 +38,33 @@ class FileAu implements fmt.File {
 		Readed = 0;
 		dataOff = 0;
 		dataSize = 0;
+		fileSize = 0;
 		format = 0;
 		rate = 0;
 		channels = 0;
 		chunkSize = 0;
+	}
+
+	// Set known full file length
+	public function setSize(size: Int): Void
+	{
+		fileSize = size;
+	}
+	// Get estimated sound length
+	public function getEtaLength(): Null<Float>
+	{
+		if (Readed < 0 || dataOff == 0 || Readed<dataOff || rate==0 || chunkSize==0 || dataSize==0) return null;
+		if (dataLen == null && dataSize != 0)
+			dataLen = (Math.floor(dataSize/chunkSize)*sndDecoder.sampleLength)/rate;
+		return dataLen;
+	}
+	// Get loaded sound length
+	public function getLoadedLength(): Float
+	{
+		if (rate == 0 || chunkSize == 0 || dataOff == 0 || Readed<dataOff)
+			return 0.0;
+		else
+			return ((Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -71,6 +96,8 @@ class FileAu implements fmt.File {
 					  case 8:
 						dataSize = DW;
 						if (dataSize == 0) dataSize = -1; // Fix for incorrect AU file
+						if (fileSize > 0 && dataSize == -1)
+							dataSize = fileSize - dataOff; // Calc length if we can
 						trace("dataSize = "+dataSize);
 					  case 12:
 						format = DW;

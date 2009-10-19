@@ -25,6 +25,9 @@ class FileRaw implements fmt.File {
 	var chunkSize : Int;
     var align : Int;
 	var SoundBuffer: Array<Array<Float>>;
+	var dataSize : Null<Int>;
+	var dataLen : Null<Float>;
+	var Readed : Int;
 
 	public function new() {
 		Buffer = new flash.utils.ByteArray();
@@ -33,12 +36,35 @@ class FileRaw implements fmt.File {
 		channels = 0;
 		chunkSize = 0;
 		align = 0;
+		Readed = 0;
 	}
 
 	private function init() {
 		SoundBuffer = new Array<Array<Float>>();
 		for(c in 0...channels)
 			SoundBuffer.push( new Array<Float>() );
+	}
+
+	// Set known full file length
+	public function setSize(size: Int): Void
+	{
+		dataSize = size;
+	}
+	// Get estimated sound length
+	public function getEtaLength(): Null<Float>
+	{
+		if (rate==0 || chunkSize==0 || dataSize==0) return null;
+		if (dataLen == null && dataSize > 0) 
+			dataLen = (Math.floor(dataSize/chunkSize)*sndDecoder.sampleLength)/rate;
+		return dataLen;
+	}
+	// Get loaded sound length
+	public function getLoadedLength(): Float
+	{
+		if (rate == 0 || chunkSize == 0)
+			return 0.0;
+		else
+			return (Readed/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -62,6 +88,7 @@ class FileRaw implements fmt.File {
 		}
 		trace("Read "+chk+" chunks");
 		// Remove processed bytes
+		Readed += i;
 		bufsize -= i;
 		Buffer.writeBytes(Buffer, i, bufsize);
 	}

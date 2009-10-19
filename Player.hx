@@ -27,6 +27,7 @@ class Player extends flash.events.EventDispatcher {
 	var padding : Array<Float>;
 	var in_off : Array<Float>;
 	var fname : String;
+	var first : Bool;
 
 	public function new(?path : String) {
 		super();
@@ -42,8 +43,17 @@ class Player extends flash.events.EventDispatcher {
 		if ((~/[.]au$/i).match(fname)) {
 			Sound = new fmt.FileAu();
 		} else
-		if ((~/[.]wav$/i).match(fname)) {
+		if ((~/[.]wav(49)?$/i).match(fname)) {
 			Sound = new fmt.FileWav();
+		} else
+		if ((~/[.](sln|raw)$/i).match(fname)) {
+			Sound = new fmt.FileSln();
+		} else
+		if ((~/[.](alaw|al)$/i).match(fname)) {
+			Sound = new fmt.FileAlaw();
+		} else
+		if ((~/[.](ulaw|ul|pcm|mu)$/i).match(fname)) {
+			Sound = new fmt.FileUlaw();
 		} else
 		if ((~/[.]gsm$/i).match(fname)) {
 			Sound = new fmt.FileGsm();
@@ -67,6 +77,7 @@ class Player extends flash.events.EventDispatcher {
 			File.addEventListener(flash.events.Event.COMPLETE, completeHandler);
 			File.addEventListener(flash.events.ProgressEvent.PROGRESS, progressHandler);
 			trace("Load begin!");
+			first = true;
 			File.load(Req);
 			dispatchEvent(new PlayerEvent(PlayerEvent.BUFFERING));
 		}
@@ -92,13 +103,19 @@ class Player extends flash.events.EventDispatcher {
 		read(true);
 		dispatchEvent(event);
 	}
-	function progressHandler(event:flash.events.Event) {
+	function progressHandler(event:flash.events.ProgressEvent) {
 		trace("progressHandler: " + event);
+        if (first) {
+            first = false;
+			if (event.bytesTotal>0)
+				Sound.setSize(event.bytesTotal);
+        }
 		read(false);
-		dispatchEvent(event);
+		dispatchEvent(event); // here we fire byte progress
 	}
 	function read(last: Bool) {
 		Sound.push( File, last );
+		dispatchEvent( new PlayerLoadEvent(PlayerLoadEvent.LOAD, false, false, Sound.getLoadedLength(), Sound.getEtaLength()) );
 		trace("Sound ready = "+Sound.ready()+"; rate="+Sound.getRate()+"; channels="+Sound.getChannels()+"; samples="+Sound.samplesAvailable());
 		if (Sound.samplesAvailable()>0) {
 			if (Sound.getRate() == 44100) {
@@ -130,15 +147,17 @@ class Player extends flash.events.EventDispatcher {
 				// So, for last pack we need to add one more padding zone
 				for( c in 0...Sound.getChannels() ) {
 					buffer[c] = buffer[c].concat( Samples[c] );
-					if (last)
+					if (last) {
 						buffer[c] = buffer[c].concat( padding );
+						buffer[c] = buffer[c].concat( padding );
+					}
 					Res.push( new Array<Float>() );
 					in_off[0] = inOff;
 					out_off[0] = 0;
 					// Note: number of last element, not count!
 					// Always hold 1 padding left and 1 padding right
 					var in_end: Float = buffer[c].length-padding.length;
-					var out_end: Int = (Std.int( buffer[0].length / pitch[0] + 1 )+Resampler.getPadding())*2;
+					var out_end: Int = (Std.int( buffer[0].length / pitch[0] + 1 )+Resampler.getPadding())*5;
 					Resampler.interpolate(buffer[c], in_off, in_end, pitch, 0, Res[c], out_off, out_end);
 					trace("Interpolate in_off="+in_off[0]+"; out_off="+out_off[0]+"; out_end="+out_end);
 				}

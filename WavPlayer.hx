@@ -14,14 +14,31 @@
  * accompanied this code).
  */
 
+class JsEventHandler {
+	public var Id: Int;
+	public var Event: String;
+	public var Handler: String;
+	public var User: Null<String>;
+	public inline function new(id:Int, event:String, handler:String, ?user:String) {
+		Id = id;
+		Event = event;
+		Handler = handler;
+		User = user;
+	}
+}
+
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
 	static var player : Player;
 	static var sprite;
 	static var state : String = PlayerEvent.STOPPED;
+	static var handlers : List<JsEventHandler>;
+	static var handlerId : Int;
 	static function main() {
 		trace("WavPlayer - startup");
         var fvs : Dynamic<String> = flash.Lib.current.loaderInfo.parameters;
+		handlers = new List<JsEventHandler>();
+		handlerId = 0;
 
 		sprite = new flash.display.MovieClip(); // flash.display.Sprite();
 		sprite.width = 20;
@@ -45,11 +62,16 @@ class WavPlayer {
 		player.addEventListener(PlayerEvent.PLAYING, handlePlaying);
 		player.addEventListener(PlayerEvent.STOPPED, handleStopped);
 		player.addEventListener(PlayerEvent.PAUSED, handlePaused);
+		player.addEventListener(flash.events.ProgressEvent.PROGRESS, handleProgress);
+		player.addEventListener(PlayerLoadEvent.LOAD, handleLoad);
 
 		if( !flash.external.ExternalInterface.available )
 			throw "External Interface not available";
 		try flash.external.ExternalInterface.addCallback("doPlay",doPlay) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("doStop",doStop) catch( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
 
 		//player.play("test-vf-44100.au");
 		//var Player = new Player("test-vf.au");
@@ -74,22 +96,34 @@ class WavPlayer {
 	static function handleBuffering(event:flash.events.Event) {
 		trace("Buffering event: "+event);
 		state = event.type;
+		fireJsEvent(event.type);
 		drawBuffering();
 	}
 	static function handlePlaying(event:flash.events.Event) {
 		trace("Playing event: "+event);
 		state = event.type;
+		fireJsEvent(event.type);
 		drawPlaying();
 	}
 	static function handleStopped(event:flash.events.Event) {
 		trace("Stopped event: "+event);
 		state = event.type;
+		fireJsEvent(event.type);
 		drawStopped();
 	}
 	static function handlePaused(event:flash.events.Event) {
 		trace("Paused event: "+event);
 		state = event.type;
+		fireJsEvent(event.type);
 		drawPaused();
+	}
+	static function handleLoad(event:PlayerLoadEvent) {
+		trace("Load event: "+event);
+		fireJsEvent(event.type, event.SecondsLoaded, event.SecondsTotal);
+	}
+	static function handleProgress(event:flash.events.ProgressEvent) {
+		trace("Progress event: "+event);
+		fireJsEvent(event.type, event.bytesLoaded, event.bytesTotal);
 	}
 
 	static function doPlay( ?fname: String ) {
@@ -97,6 +131,33 @@ class WavPlayer {
 	}
 	static function doStop( ) {
 		player.stop();
+	}
+    static function doAttach( event: String, handler: String, ?user: String ) {
+		var id = handlerId++;
+		handlers.push(new JsEventHandler(id, event, handler, user));
+		return id;
+    }
+	static function doDetach( event: String, handler: String, ?user: String ) {
+		handlers = handlers.filter(function(h: JsEventHandler): Bool {
+			return !(h.Event==event && h.Handler == handler && h.User==user);
+		});
+	}
+	static function doRemove( handler: Int ) {
+		handlers = handlers.filter(function(h: JsEventHandler): Bool {
+			return h.Id != handler;
+		});
+	}
+	static function fireJsEvent( event: String, ?p1: Dynamic, ?p2: Dynamic) {
+		for (h in handlers) {
+			if (h.Event == event) {
+				if (h.User != null) flash.external.ExternalInterface.call(h.Handler, h.User, p1, p2);
+				else flash.external.ExternalInterface.call(h.Handler, p1, p2);
+			} else 
+			if (h.Event == '*') {
+				if (h.User != null) flash.external.ExternalInterface.call(h.Handler, event, h.User, p1, p2);
+				else flash.external.ExternalInterface.call(h.Handler, event, p1, p2);
+			}
+		}
 	}
 
 	static function drawStopped() {

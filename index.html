@@ -17,9 +17,60 @@ function doStop() {
 	var player = getPlayer('haxe');
 	player.doStop();
 }
+var SoundLen = 0;
+var SoundPos = 0;
+var Last = undefined;
+var State = "STOPPED";
+var Timer = undefined;
+function getPerc(a, b) {
+	return ((b==0?0.0:a/b)*100).toFixed(2);
+}
+function FileLoad(bytesLoad, bytesTotal) {
+    document.getElementById('InfoFile').innerHTML = "Loaded "+bytesLoad+"/"+bytesTotal+" bytes ("+getPerc(BytesLoad,BytesTotal)+"%)";
+}
+function SoundLoad(secLoad, secTotal) {
+	document.getElementById('InfoSound').innerHTML = "Available "+secLoad.toFixed(2)+"/"+secTotal.toFixed(2)+" seconds ("+getPerc(secLoad,secTotal)+"%)";
+	SoundLen = secTotal;
+}
+function Inform() {
+	if (Last != undefined) {
+		var now = new Date();
+		var interval = (now.getTime()-Last.getTime())/1000;
+		SoundPos += interval;
+		Last = now;
+	}
+	document.getElementById('InfoState').innerHTML = State + "("+SoundPos.toFixed(2)+"/"+SoundLen.toFixed(2)+" sec ("+getPerc(SoundPos,SoundLen)+"%)";
+}
+function SoundState(state) {
+	if (State != "PLAYING" && state=="PLAYING") {
+		Last = new Date();
+		SoundPos = 0;
+		Timer = setInterval(Inform, 100);
+		Inform();
+	} else
+	if (State == "PLAYING" && state!="PLAYING") {
+		clearInterval(Timer);
+		Timer = undefined;
+		Inform();
+	}
+	State = state;
+	Inform();
+}
+function init() {
+	var player = getPlayer('haxe');
+	if (!player || !player.attachHandler) setTimeout(init, 100); // Wait for load
+	else {
+		player.attachHandler("progress", "FileLoad");
+		player.attachHandler("PLAYER_LOAD", "SoundLoad");
+		player.attachHandler("PLAYER_BUFFERING", "SoundState", "BUFFERING");
+		player.attachHandler("PLAYER_PLAYING", "SoundState", "PLAYING");
+		player.attachHandler("PLAYER_STOPPED", "SoundState", "STOPPED");
+		Inform();
+	}
+}
 </script>
 </head>
-<body bgcolor="#dddddd">
+<body bgcolor="#dddddd" onload="init()">
 
 <a href="javascript:doPlay()">doPlay()</a>
 <a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
@@ -28,6 +79,9 @@ function doStop() {
 <a href="javascript:doStop()">doStop()</a>
 <br/>
 
+<div id="InfoFile"></div>
+<div id="InfoSound"></div>
+<div id="InfoState"></div>
 <object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
 		width="20"
 	height="20"

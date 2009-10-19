@@ -25,6 +25,12 @@ interface File {
 	function getRate(): Int;
 	// Get sound channels
 	function getChannels(): Int;
+    // Set known full file length
+    function setSize(size: Int): Void;
+	// Get estimated sound length
+	function getEtaLength(): Null<Float>;
+	// Get loaded sound length
+	function getLoadedLength(): Float;
 	// Get count of complete samples available
 	function samplesAvailable(): Int;
 	// Get complete samples as array of channel samples

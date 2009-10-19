@@ -18,6 +18,7 @@ package fmt;
 // PCM sound decoder. Supports any bitlength
 class DecoderPCM implements fmt.Decoder {
 	public var sampleSize : Int;
+	public var sampleLength : Int;
 	var divisor : Int;
 	var shift : Int;
 	public function new(bps : Int, ?bs : Int) {
@@ -25,6 +26,7 @@ class DecoderPCM implements fmt.Decoder {
 		if (sampleSize == 0) throw "Unsupported BPS";
 		divisor = 1 << (bps-1);
 		shift = 1 << bps;
+		sampleLength = 1;
 	}
 	public function decode( InBuf : haxe.io.BytesData, Off: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		var Sample: Int = 0;

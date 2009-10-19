@@ -21,9 +21,11 @@ package fmt;
 
 class DecoderG711a implements fmt.Decoder {
 	public var sampleSize : Int;
+	public var sampleLength : Int;
 	public function new(bps : Int, ?bs : Int) {
 		if (bps != 8) throw "Unsupported BPS";
 		sampleSize = 1;
+		sampleLength = 1;
 	}
 	static var exp_lut : Array<Int> = [ 0, 264, 528, 1056, 2112, 4224, 8448, 16896 ];
 	public function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff : Int) : Int {

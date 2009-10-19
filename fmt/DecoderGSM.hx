@@ -20,6 +20,7 @@ import org.tritonus.lowlevel.gsm.GSMDecoder;
 
 class DecoderGSM implements fmt.Decoder {
 	public var sampleSize : Int;
+	public var sampleLength : Int;
 	private var wavmode : Bool;
     private var decoder : GSMDecoder;
 	private var temp : haxe.io.BytesData;
@@ -27,11 +28,13 @@ class DecoderGSM implements fmt.Decoder {
 		if (bps == 264 || (bps == 0 && bs==33)) { // Standarts mode, 264bit GSM -> 160 samples)
 			wavmode = false;
 			sampleSize = 33;
+			sampleLength = 160;
 		} else
 		if (bps == 260 || (bps == 0 && bs==65)) { // WAV mode: 65 bytes per twin 32+33 packs
 			wavmode = true;
 			sampleSize = 65; 
 			temp = new haxe.io.BytesData();
+			sampleLength = 320;
 		} else 
 			throw "Unsupported BPS";
 		decoder = new GSMDecoder();
