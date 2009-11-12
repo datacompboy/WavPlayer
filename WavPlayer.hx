@@ -29,7 +29,7 @@ class JsEventHandler {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-	static var Version = 1.3;
+	static var Version = 1.4;
 	static var player : Player;
 	static var sprite;
 	static var state : String = PlayerEvent.STOPPED;
@@ -80,6 +80,7 @@ class WavPlayer {
 
 		if( !flash.external.ExternalInterface.available )
 			throw "External Interface not available";
+		try flash.external.ExternalInterface.addCallback("getVersion",doGetVer) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("doPlay",doPlay) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("doStop",doStop) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
@@ -149,7 +150,11 @@ class WavPlayer {
 		}
 	}
 
+	static function doGetVer( ) {
+		return Version;
+	}
 	static function doPlay( ?fname: String ) {
+		player.stop();
         lastNotifyProgress = 0;
         lastNotifyLoad = 0;
 		player.play(fname);

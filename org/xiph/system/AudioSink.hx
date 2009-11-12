@@ -64,12 +64,15 @@ class AudioSink extends flash.events.EventDispatcher {
 	}
 
 	public function soundCompleteHandler(e:flash.events.Event):Void {
+		sch = null;
 		dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
 	}
 
 	public function stop() : Void {
 		if (sch != null) {
 			sch.stop();
+			dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
+			sch = null;
 		}
 	}
 

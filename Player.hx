@@ -32,6 +32,8 @@ class Player extends flash.events.EventDispatcher {
 	public function new(?path : String) {
 		super();
 		fname = path;
+		asink = null;
+		File = null;
 	}
 
 	public function play(?path : String) {
@@ -95,7 +97,18 @@ class Player extends flash.events.EventDispatcher {
 	}
 
 	public function stop() {
-		asink.stop();
+		var inform = true;
+		if (asink != null) {
+			asink.stop();
+			asink = null;
+			inform = false;
+		}
+		if (File != null) {
+			File.close();
+			File = null;
+			if (inform)
+				dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
+		}
 	}
 
 	function completeHandler(event:flash.events.Event) {
