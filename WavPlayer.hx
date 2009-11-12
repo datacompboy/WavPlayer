@@ -29,18 +29,31 @@ class JsEventHandler {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
+	static var Version = 1.3;
 	static var player : Player;
 	static var sprite;
 	static var state : String = PlayerEvent.STOPPED;
 	static var handlers : List<JsEventHandler>;
 	static var handlerId : Int;
+	static var lastNotifyProgress : Float;
+	static var lastNotifyLoad : Float;
 	static function main() {
-		trace("WavPlayer - startup");
+		trace("WavPlayer "+Version+" - startup");
+		var myMenu = new flash.ui.ContextMenu();
+		var ciVer = new flash.ui.ContextMenuItem("WavPlayer "+Version);
+		var ciCop = new flash.ui.ContextMenuItem("Licensed under GPL");
+		myMenu.customItems.push(ciVer);
+		myMenu.customItems.push(ciCop);
+
         var fvs : Dynamic<String> = flash.Lib.current.loaderInfo.parameters;
 		handlers = new List<JsEventHandler>();
 		handlerId = 0;
 
+		lastNotifyProgress = 0;
+		lastNotifyLoad = 0;
+
 		sprite = new flash.display.MovieClip(); // flash.display.Sprite();
+		sprite.contextMenu = myMenu;
 		sprite.width = 20;
 		sprite.height = 20;
 		sprite.addEventListener(flash.events.MouseEvent.CLICK, handleClicked);
@@ -119,14 +132,26 @@ class WavPlayer {
 	}
 	static function handleLoad(event:PlayerLoadEvent) {
 		trace("Load event: "+event);
-		fireJsEvent(event.type, event.SecondsLoaded, event.SecondsTotal);
+		var now = Date.now().getTime();
+		trace("Now=" + now + "; lastNotifyLoad=" + lastNotifyLoad);
+		if (lastNotifyLoad==0 || event.SecondsTotal-event.SecondsLoaded < 1e-4 || now - lastNotifyLoad > 500) {
+			lastNotifyLoad = now;
+			fireJsEvent(event.type, event.SecondsLoaded, event.SecondsTotal);
+		}
 	}
 	static function handleProgress(event:flash.events.ProgressEvent) {
 		trace("Progress event: "+event);
-		fireJsEvent(event.type, event.bytesLoaded, event.bytesTotal);
+		var now = Date.now().getTime();
+		trace("Now = " + now + "; lastNotifyProgress=" + lastNotifyProgress);
+		if (lastNotifyProgress==0 || event.bytesLoaded == event.bytesTotal || now - lastNotifyProgress > 500) {
+			lastNotifyProgress = now;
+			fireJsEvent(event.type, event.bytesLoaded, event.bytesTotal);
+		}
 	}
 
 	static function doPlay( ?fname: String ) {
+        lastNotifyProgress = 0;
+        lastNotifyLoad = 0;
 		player.play(fname);
 	}
 	static function doStop( ) {
