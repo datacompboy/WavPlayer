@@ -20,7 +20,9 @@ class PlayerEvent extends flash.events.Event {
    static public inline var PLAYING : String = "PLAYER_PLAYING";
    static public inline var PAUSED : String = "PLAYER_PAUSED";
    static public inline var STOPPED : String = "PLAYER_STOPPED";
-   public function new(type : String, ?bubbles : Bool, ?cancelable : Bool) {
+   public var position : Null<Float>;
+   public function new(type : String, ?position : Float, ?bubbles : Bool, ?cancelable : Bool) {
 	   super(type, bubbles, cancelable);
+	   this.position = position;
    }
 }

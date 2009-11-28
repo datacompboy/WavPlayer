@@ -113,7 +113,5 @@ class SoftLanczosResampler implements SoftAbstractResampler {
 		in_offset[0] = ix;
 		out_offset[0] = ox;
 		startpitch[0] = pitch;
-		trace("ix="+ix+"; ox="+ox);
-
 	}
 }

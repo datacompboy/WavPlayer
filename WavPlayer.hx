@@ -46,7 +46,7 @@ class WavPlayerGui extends flash.events.EventDispatcher {
 	function Rect(sprite,x:Float,y:Float,color,alpha:Float=100) {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(1, color, alpha);
+		g.lineStyle(1, color, alpha, true);
 		g.beginFill(color, alpha);
 		g.moveTo(0, 0);
 		g.lineTo(0, y-1);
@@ -57,8 +57,12 @@ class WavPlayerGui extends flash.events.EventDispatcher {
 }
 class WavPlayerGuiEvent extends flash.events.Event {
    static public inline var CLICKED : String = "PLAYERGUI_CLICKED";
-   public function new(type : String, ?bubbles : Bool, ?cancelable : Bool) {
+   static public inline var DBLCLICKED : String = "PLAYERGUI_DOUBLECLICKED";
+   static public inline var SEEKING : String = "PLAYERGUI_SEEKING";
+   public var position: Null<Float>;
+   public function new(type : String, ?position : Float, ?bubbles : Bool, ?cancelable : Bool) {
 	   super(type, bubbles, cancelable);
+	   this.position = position;
    }
 }
 
@@ -68,21 +72,26 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 		super();
 		sprite = new flash.display.MovieClip();
 		sprite.contextMenu = myMenu;
-		sprite.addEventListener(flash.events.MouseEvent.CLICK, handleClicked);
 		sprite.useHandCursor = true;
 		sprite.buttonMode = true;
+		sprite.doubleClickEnabled = true;
+		sprite.addEventListener(flash.events.MouseEvent.CLICK, handleClicked);
+		sprite.addEventListener(flash.events.MouseEvent.DOUBLE_CLICK, handleDblClicked);
 		sprite.scaleX = zoom;
 		sprite.scaleY = zoom;
 		sprite.scaleZ = 1;
 		sprite.x = x;
 		sprite.y = y;
-		sprite.addChild(Sizer(40,40));
+		var Sizer = Sizer(32,32);
+		sprite.addChild(Sizer);
+		Sizer.x = 4;
+		Sizer.y = 4;
 		root.addChild(sprite);
 	}
 	public override function drawStopped() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(4, 0x808080, 1, false, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(4, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.beginFill(0x808080);
 		g.moveTo(8, 6);
@@ -94,14 +103,14 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	public override function drawBuffering() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(4, 0x808080, 1, false, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(4, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.drawCircle(20, 20, 10);
 	}
 	public override function drawPlaying() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(6, 0x808080, 1, false, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(6, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.beginFill(0x808080);
 		g.moveTo(8, 8);
@@ -114,7 +123,7 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	public override function drawPaused() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(8, 0x808080, 1, false, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(8, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.moveTo(12, 8);
 		g.lineTo(12, 32);
@@ -124,6 +133,9 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	function handleClicked(event:flash.events.Event) {
 		dispatchEvent(new WavPlayerGuiEvent(WavPlayerGuiEvent.CLICKED));
 	}
+	function handleDblClicked(event:flash.events.Event) {
+		dispatchEvent(new WavPlayerGuiEvent(WavPlayerGuiEvent.DBLCLICKED));
+	}
 }
 class WavPlayerGui_Full extends WavPlayerGui {
 	var GuiMini: WavPlayerGui;
@@ -131,59 +143,95 @@ class WavPlayerGui_Full extends WavPlayerGui {
 	var rectFile: flash.display.Sprite;
 	var rectReady: flash.display.Sprite;
 	var rectMark: flash.display.Sprite;
+	var minTicks: flash.display.Sprite;
 	var width: Float;
+	var zoom: Float;
 	var timer: flash.utils.Timer;
 	var lastTime: Float;
 	public inline function new(root : flash.display.Sprite, myMenu, zoom:Float=1, size:Float=10) {
 		super();
+		this.zoom = zoom;
 		sprite = new flash.display.MovieClip();
 		sprite.contextMenu = myMenu;
-		sprite.scaleX = zoom;
-		sprite.scaleY = zoom;
+		sprite.scaleX = 1;
+		sprite.scaleY = 1;
 		sprite.scaleZ = 1;
 		sprite.addEventListener(flash.events.MouseEvent.CLICK, handleClicked);
 		sprite.useHandCursor = true;
 		sprite.buttonMode = true;
 		sprite.x = 40*zoom;
 		sprite.y = 0;
-		sprite.addChild(Sizer(40.0*size,40.0));
-		GuiMini = new WavPlayerGui_Mini(sprite, myMenu, 1, -40);
-		GuiMini.addEventListener(WavPlayerGuiEvent.CLICKED, proxyClicked);
+		sprite.addChild(Sizer(40.0*size*zoom,40.0*zoom));
+		GuiMini = new WavPlayerGui_Mini(root, myMenu, zoom, -3);
+		GuiMini.addEventListener(WavPlayerGuiEvent.CLICKED, proxyEvent);
+		GuiMini.addEventListener(WavPlayerGuiEvent.DBLCLICKED, proxyEvent);
 
 		rectFile = new flash.display.MovieClip();
 		rectFile.scaleX = 1;
 		rectFile.scaleY = 1;
 		rectFile.scaleZ = 1;
-		rectFile.addChild(Sizer(40.0*size+3,26.0,0x303030,1));
+		rectFile.addChild(Sizer(40.0*size*zoom+3,26.0*zoom,0x303030,1));
 		sprite.addChild(rectFile);
 		rectFile.x = -2;
-		rectFile.y = 7;
+		rectFile.y = 7*zoom;
 
 		rectReady = new flash.display.MovieClip();
 		rectReady.scaleX = 1;
 		rectReady.scaleY = 1;
 		rectReady.scaleZ = 1;
-		rectReady.addChild(Sizer(40.0*size,10.0,0xA0A0A0,1));
+		rectReady.addChild(Sizer(40.0*size*zoom,10.0*zoom,0xA0A0A0,1));
 		sprite.addChild(rectReady);
 		rectReady.x = 0;
-		rectReady.y = 15;
+		rectReady.y = 15*zoom;
 		rectReady.scaleX = 0.0;
+
+		minTicks = new flash.display.MovieClip();
+		minTicks.scaleX = 1;
+		minTicks.scaleY = 1;
+		minTicks.scaleZ = 1;
+		minTicks.x = 0;
+		minTicks.y = 0;
+		sprite.addChild(minTicks);
 
 		rectMark = new flash.display.MovieClip();
 		rectMark.scaleX = 1;
 		rectMark.scaleY = 1;
 		rectMark.scaleZ = 1;
-		rectMark.addChild(Sizer(5.0,40.0,0x7FA03F,1));
+		rectMark.addChild(Sizer(5.0*zoom,40.0*zoom,0x7FA03F,1));
 		sprite.addChild(rectMark);
-		width = 40.0*size;
+		width = 40.0*size*zoom;
 		rectMark.x = width*0.0-3;
 		rectMark.y = 0;
 		rectMark.scaleX = 0.7;
-
+		
 		root.addChild(sprite);
 		timer = new flash.utils.Timer(100);
 		timer.addEventListener( flash.events.TimerEvent.TIMER, delay );
 		timer.stop();
+	}
+	public override function setLength(length: Float) {
+		var oldlen = this.length;
+		super.setLength(length);
+		if (oldlen != length && length > 0) {
+			var g:flash.display.Graphics = minTicks.graphics;
+			g.clear();
+			g.lineStyle(1, 0x60EF30, 1, true, flash.display.LineScaleMode.NONE,
+						flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
+			var i: Int = 0;
+			while( (i+=10) < length ) if (i%60!=0) {
+				var x = width*(i/length)-3;
+				g.moveTo(x, 0);
+				g.lineTo(x, 10);
+			}
+			g.lineStyle(3, 0x3080FF, 1, true, flash.display.LineScaleMode.NORMAL,
+						flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
+			i = 0;
+			while( (i+=60) < length ) {
+				var x = width*(i/length)-3;
+				g.moveTo(x, 0);
+				g.lineTo(x, 10);
+			}
+		}
 	}
 	public override function setReady(ready: Float) {
 		super.setReady(ready);
@@ -194,40 +242,41 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		if (length > 0) rectMark.x = width*(position/length)-3;
 	}
 	public override function drawStopped() {
-		GuiMini.drawStopped();
 		timer.stop();
+		GuiMini.drawStopped();
 	}
 	public override function drawBuffering() {
-		GuiMini.drawBuffering();
 		timer.stop();
+		GuiMini.drawBuffering();
 	}
 	public override function drawPlaying() {
-		GuiMini.drawPlaying();
 		lastTime = haxe.Timer.stamp();
 		timer.reset();
 		timer.start();
+		GuiMini.drawPlaying();
 	}
 	public override function drawPaused() {
-		GuiMini.drawPaused();
 		timer.stop();
+		GuiMini.drawPaused();
 	}
 	function delay(evt : flash.events.TimerEvent) {
 		var ts = haxe.Timer.stamp();
 		setPosition(position + (ts-lastTime));
 		lastTime = ts;
 	}
-	function proxyClicked(event:flash.events.Event) {
+	function proxyEvent(event:flash.events.Event) {
 		dispatchEvent(event);
 	}
-	function handleClicked(event:flash.events.Event) {
-		trace("Clicked event: "+event);
-		//dispatchEvent(new WavPlayerGuiEvent(WavPlayerGuiEvent.CLICKED));
+	function handleClicked(event:flash.events.MouseEvent) {
+		var pos: Float = Math.max(0.0, Math.min(1.0, (event.stageX-sprite.x)/width));
+		trace("Clicked to "+(event.stageX-sprite.x)+" from "+width+" pos="+pos);
+		dispatchEvent(new WavPlayerGuiEvent(WavPlayerGuiEvent.SEEKING, pos*length));
 	}
 }
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-	static var Version = 1.5;
+	static var Version = "1.6.1";
 	static var player : Player;
 	static var state : String = PlayerEvent.STOPPED;
 	static var handlers : List<JsEventHandler>;
@@ -251,18 +300,18 @@ class WavPlayer {
 		lastNotifyLoad = 0;
 
 		var zoom:Float = Std.parseInt(fvs.h); zoom = (zoom>0?zoom:40.0) / 40.0;
-		trace("zoom="+zoom);
 		if (fvs.gui == "full") {
 			var width:Float = Std.parseInt(fvs.w); width = (width>0?width:40.0) / zoom / 40.0;
-			trace("width="+width);
 			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1);
 		} else {
 			iface = new WavPlayerGui_Mini(flash.Lib.current, myMenu, zoom);
 		}
 		iface.addEventListener(WavPlayerGuiEvent.CLICKED, handleClicked);
-		trace("WavPlayer - gui started " + WavPlayerGui_Full);
+		iface.addEventListener(WavPlayerGuiEvent.DBLCLICKED, handleDblClicked);
+		iface.addEventListener(WavPlayerGuiEvent.SEEKING, handleSeeking);
+		trace("WavPlayer - gui started " + iface);
 
-		iface.drawStopped(); //iface.drawPaused(); //iface.drawPlaying(); //iface.drawBuffering();
+		iface.drawStopped();
 
 		player = new Player(fvs.sound);
 		player.addEventListener(PlayerEvent.BUFFERING, handleBuffering);
@@ -281,38 +330,49 @@ class WavPlayer {
 		try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
 	}
+	static function handleSeeking(event:WavPlayerGuiEvent) {
+		player.seek(event.position);
+	}
 	static function handleClicked(event:flash.events.Event) {
 		trace("Clicked event: "+event);
 		switch( state ) {
-		  case PlayerEvent.STOPPED:   iface.setPosition(0); player.play();
+		  case PlayerEvent.STOPPED:   player.play();
 		  case PlayerEvent.BUFFERING: player.stop();
-		  case PlayerEvent.PLAYING:   player.stop();
-		  case PlayerEvent.PAUSED:	  player.play();
+		  case PlayerEvent.PLAYING:   player.pause();
+		  case PlayerEvent.PAUSED:	  player.resume();
 		}
 	}
-	static function handleBuffering(event:flash.events.Event) {
+	static function handleDblClicked(event:flash.events.Event) {
+		trace("DoubleClick event: "+event);
+		player.stop();
+	}
+	static function handleBuffering(event:PlayerEvent) {
 		trace("Buffering event: "+event);
 		state = event.type;
+		if (event.position!=null) iface.setPosition(event.position);
 		iface.drawBuffering();
-		fireJsEvent(event.type);
+		fireJsEvent(event.type, event.position);
 	}
-	static function handlePlaying(event:flash.events.Event) {
+	static function handlePlaying(event:PlayerEvent) {
 		trace("Playing event: "+event);
 		state = event.type;
+		if (event.position!=null) iface.setPosition(event.position);
 		iface.drawPlaying();
-		fireJsEvent(event.type);
+		fireJsEvent(event.type, event.position);
 	}
-	static function handleStopped(event:flash.events.Event) {
+	static function handleStopped(event:PlayerEvent) {
 		trace("Stopped event: "+event);
 		state = event.type;
+		if (event.position!=null) iface.setPosition(event.position);
 		iface.drawStopped();
-		fireJsEvent(event.type);
+		fireJsEvent(event.type, event.position);
 	}
-	static function handlePaused(event:flash.events.Event) {
+	static function handlePaused(event:PlayerEvent) {
 		trace("Paused event: "+event);
 		state = event.type;
+		if (event.position!=null) iface.setPosition(event.position);
 		iface.drawPaused();
-		fireJsEvent(event.type);
+		fireJsEvent(event.type, event.position);
 	}
 	static function handleLoad(event:PlayerLoadEvent) {
 		trace("Load event: "+event);

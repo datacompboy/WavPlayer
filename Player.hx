@@ -29,6 +29,7 @@ class Player extends flash.events.EventDispatcher {
 	var fname : String;
 	var first : Bool;
 	var timer : flash.utils.Timer;
+	var pos : Null<Float>;
 
 	public function new(?path : String) {
 		super();
@@ -65,15 +66,7 @@ class Player extends flash.events.EventDispatcher {
 			throw "Unsupported file type";
 		}
 		Resampler = new com.sun.media.sound.SoftLanczosResampler();
-		try {
-			asink = new org.xiph.system.AudioSink(8192, true, 132300);
-			asink.addEventListener(PlayerEvent.PLAYING, playingEvent);
-			asink.addEventListener(PlayerEvent.STOPPED, stoppedEvent);
-		} catch (error : Dynamic) {
-			trace("Unable to load: "+error);
-			trace(haxe.Stack.exceptionStack());
-			throw error;
-		}
+		initAsink();
 		try {
 			File = new flash.net.URLStream();
 			var Req = new flash.net.URLRequest(fname);
@@ -82,7 +75,7 @@ class Player extends flash.events.EventDispatcher {
 			trace("Load begin!");
 			first = true;
 			File.load(Req);
-			dispatchEvent(new PlayerEvent(PlayerEvent.BUFFERING));
+			dispatchEvent(new PlayerEvent(PlayerEvent.BUFFERING, 0));
 			timer = new flash.utils.Timer(100);
 			timer.addEventListener( flash.events.TimerEvent.TIMER, timeout );
 			timer.start();
@@ -92,26 +85,64 @@ class Player extends flash.events.EventDispatcher {
 			throw error;
 		}
 	}
-
-	function playingEvent(event:flash.events.Event) {
-		dispatchEvent(event);
+	function initAsink() {
+		try {
+			asink = new org.xiph.system.AudioSink(8192, true, 44100*5);
+			asink.addEventListener(PlayerEvent.PLAYING, playingEvent);
+			asink.addEventListener(PlayerEvent.STOPPED, stoppedEvent);
+		} catch (error : Dynamic) {
+			trace("Unable to load: "+error);
+			trace(haxe.Stack.exceptionStack());
+			throw error;
+		}
 	}
-	function stoppedEvent(event:flash.events.Event) {
-		dispatchEvent(event);
+
+	function playingEvent(event:PlayerEvent) {
+		dispatchEvent(new PlayerEvent(PlayerEvent.PLAYING, event.position));
+	}
+	function stoppedEvent(event:PlayerEvent) {
+		dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED, event.position));
 	}
 
-	public function stop() {
-		var inform = true;
+	public function pause() {
 		if (asink != null) {
-			asink.stop();
+			pos = asink.pause();
+			trace("Paused pos = "+pos);
+			dispatchEvent(new PlayerEvent(PlayerEvent.PAUSED, pos));
+		}
+		else stop();
+	}
+	public function resume() {
+		trace("Try to resume from"+pos);
+		if (pos!=null) {
+			asink.play(pos);
+		}
+		else play();
+	}
+	public function seek(pos: Float) {
+		if (asink != null && Sound != null && Sound.ready()==1) {
+			asink.pause();
+			if (!asink.play(pos)) { // If we seek outside prepared buffer, need to re-setup resampler buffer
+				asink = null;
+				initAsink();
+				initResampler();
+				asink.pos += Sound.seek(pos);
+				dispatchEvent(new PlayerEvent(PlayerEvent.BUFFERING, asink.pos));
+				// timeout handler will populate from new pos when ready
+			}
+		}
+	}
+	
+	public function stop() {
+		if (asink != null) {
+			var pos = asink.stop();
+			trace("Stopped position = "+pos);
 			asink = null;
-			inform = false;
 		}
 		if (File != null) {
 			File.close();
 			File = null;
-			if (inform)
-				dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED));
+			dispatchEvent(new PlayerEvent(PlayerEvent.STOPPED, 0.0));
 		}
 		if (timer != null) {
 			timer = null;
@@ -120,7 +151,7 @@ class Player extends flash.events.EventDispatcher {
 
 	function completeHandler(event:flash.events.Event) {
 		trace("completeHandler: " + event);
-		read(true);
+		timeout(null);
 		dispatchEvent(event);
 	}
 	function progressHandler(event:flash.events.ProgressEvent) {
@@ -130,23 +161,44 @@ class Player extends flash.events.EventDispatcher {
 			if (event.bytesTotal>0)
 				Sound.setSize(event.bytesTotal);
         }
-		read(false);
 		dispatchEvent(event); // here we fire byte progress
 	}
 	
 	function timeout(event:Null<flash.events.Event>) {
 		if (asink.available < 44100*5) {
+			read(event == null);
 			Sound.populate( Math.ceil(Math.min(Sound.getRate(), Sound.getRate()*((44100*5-asink.available)/44100.0) )) );
 			populate();
 		}
 	}
 
 	function read(last: Bool) {
-		Sound.push( File, last );
-		timeout(null);
-		dispatchEvent( new PlayerLoadEvent(PlayerLoadEvent.LOAD, false, false, Sound.getLoadedLength(), Sound.getEtaLength()) );
-		trace("Sound ready = "+Sound.ready()+"; rate="+Sound.getRate()+"; channels="+Sound.getChannels()+"; samples="+Sound.samplesAvailable());
-		if (last) asink.play();
+		if (File.bytesAvailable > 0) {
+			Sound.push( File, last );
+			dispatchEvent( new PlayerLoadEvent(PlayerLoadEvent.LOAD, false, false, Sound.getLoadedLength(), Sound.getEtaLength()) );
+			//trace("Sound ready = "+Sound.ready()+"; rate="+Sound.getRate()+"; channels="+Sound.getChannels()+"; samples="+Sound.samplesAvailable());
+		}
+	}
+	
+	function initResampler() {
+		if (Sound.getRate() != 44100) {
+			pitch[0] = Sound.getRate() / 44100.0;
+			trace("Resample with "+pitch[0]+" pitch");
+			buffer = new Array<Array<Float>>();
+			if (padding == null) {
+				padding = new Array<Float>();
+				for( k in 0...Resampler.getPadding() )
+					padding.push( 0.0 ); // Fill startup padding
+			}
+			for( c in 0...Sound.getChannels() ) {
+				// Fill with double padding
+				buffer.push( padding.copy() );
+				buffer[c] = buffer[c].concat( padding );
+			}
+			in_off = new Array<Float>();
+			in_off[0] = Resampler.getPadding();
+			asink.pos -= (padding.length / Sound.getRate());		
+		}
 	}
 	
 	function populate() {
@@ -155,24 +207,11 @@ class Player extends flash.events.EventDispatcher {
 				var Samples = Sound.getSamples();
 				var ind = new Array<Int>(); ind[0] = 0;
 				var cnt = Samples[0].length;
-				asink.write(Samples, ind, cnt);
+				asink.write(Samples, ind, cnt, Sound.last);
 			} else {
 				var Samples = Sound.getSamples();
-				if (pitch.length != 1) {
-					pitch[0] = Sound.getRate() / 44100.0;
-					trace("Resample with "+pitch[0]+" pitch");
-					buffer = new Array<Array<Float>>();
-					padding = new Array<Float>();
-					for( k in 0...Resampler.getPadding() )
-						padding.push( 0.0 ); // Fill startup padding
-					for( c in 0...Sound.getChannels() ) {
-						// Fill with double padding
-						buffer.push( padding.copy() );
-						buffer[c] = buffer[c].concat( padding );
-					}
-					in_off = new Array<Float>();
-					in_off[0] = Resampler.getPadding();
-				}
+				if (pitch.length != 1)
+					initResampler();
 				var Res = new Array<Array<Float>>();
 				var out_off = new Array<Int>();
 				var inOff = in_off[0];
@@ -192,12 +231,11 @@ class Player extends flash.events.EventDispatcher {
 					var in_end: Float = buffer[c].length-padding.length;
 					var out_end: Int = (Std.int( buffer[0].length / pitch[0] + 1 )+Resampler.getPadding())*5;
 					Resampler.interpolate(buffer[c], in_off, in_end, pitch, 0, Res[c], out_off, out_end);
-					//trace("Interpolate in_off="+in_off[0]+"; out_off="+out_off[0]+"; out_end="+out_end);
 				}
 
 				// Write resampled sound
 				var ind = new Array<Int>(); ind[0] = 0;
-				asink.write(Res, ind, out_off[0]);
+				asink.write(Res, ind, out_off[0], Sound.last);
 
 				// Shift buffers
 				for( c in 0...Sound.getChannels() ) {

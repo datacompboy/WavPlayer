@@ -32,6 +32,7 @@ function SoundLoad(secLoad, secTotal) {
 	document.getElementById('InfoSound').innerHTML = "Available "+secLoad.toFixed(2)+"/"+secTotal.toFixed(2)+" seconds ("+getPerc(secLoad,secTotal)+"%)";
 	SoundLen = secTotal;
 }
+var InfoState = undefined;
 function Inform() {
 	if (Last != undefined) {
 		var now = new Date();
@@ -39,12 +40,12 @@ function Inform() {
 		SoundPos += interval;
 		Last = now;
 	}
-	document.getElementById('InfoState').innerHTML = State + "("+SoundPos.toFixed(2)+"/"+SoundLen.toFixed(2)+" sec ("+getPerc(SoundPos,SoundLen)+"%)";
+	InfoState.innerHTML = State + "("+SoundPos.toFixed(2)+"/"+SoundLen.toFixed(2)+" sec ("+getPerc(SoundPos,SoundLen)+"%)";
 }
-function SoundState(state) {
+function SoundState(state, position) {
+	if (position != undefined) SoundPos = position;
 	if (State != "PLAYING" && state=="PLAYING") {
 		Last = new Date();
-		SoundPos = 0;
 		Timer = setInterval(Inform, 100);
 		Inform();
 	} else
@@ -65,6 +66,8 @@ function init() {
 		player.attachHandler("PLAYER_BUFFERING", "SoundState", "BUFFERING");
 		player.attachHandler("PLAYER_PLAYING", "SoundState", "PLAYING");
 		player.attachHandler("PLAYER_STOPPED", "SoundState", "STOPPED");
+		player.attachHandler("PLAYER_PAUSED", "SoundState", "PAUSED");
+		InfoState = document.getElementById('InfoState')
 		Inform();
 	}
 }
