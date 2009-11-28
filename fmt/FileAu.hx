@@ -18,6 +18,7 @@ package fmt;
 // FileAu: stream AU file reader
 // Reads any implemented codecs from it
 class FileAu implements fmt.File {
+	public var last: Bool;
 	var Buffer: flash.utils.ByteArray;
 	var bufsize: Int;
 	var Readed: Int;
@@ -43,6 +44,7 @@ class FileAu implements fmt.File {
 		rate = 0;
 		channels = 0;
 		chunkSize = 0;
+		last = false;
 	}
 
 	// Set known full file length
@@ -64,7 +66,7 @@ class FileAu implements fmt.File {
 		if (rate == 0 || chunkSize == 0 || dataOff == 0 || Readed<dataOff)
 			return 0.0;
 		else
-			return ((Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
+			return Math.floor((bufsize+Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -155,26 +157,46 @@ class FileAu implements fmt.File {
 					}
 				}
 			} else { // Read sound
-				var chk = 0;
-				while(bufsize - i > chunkSize) {
-					for(j in 0...channels) {
-						sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
-						i += sndDecoder.sampleSize;
-					}
-					chk++;
-				}
-				trace("Read "+chk+" chunks");
 				break;
 			}
 		}
 		// Remove processed bytes
-		Readed += i;
-		bufsize -= i;
-		Buffer.writeBytes(Buffer, i, bufsize);
+		if (i>0) {
+			Readed += i;
+			bufsize -= i;
+			Buffer.position = 0;
+			Buffer.writeBytes(Buffer, i, bufsize);
+		}
+	}
+
+	// Require decoder to populate at least <samples> samples from audio stream
+	public function populate(samples: Int): Void
+	{
+		if (ready() != 1) return;
+		var i = 0;
+		var chk = 0;
+		while(SoundBuffer[0].length < samples && bufsize - i > chunkSize) {
+			for(j in 0...channels) {
+				sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
+				i += sndDecoder.sampleSize;
+			}
+			//i += align;
+			chk++;
+		}
+		trace("Read "+chk+" chunks = "+SoundBuffer[0].length);
+		// Remove processed bytes
+		if (i>0) {
+			Readed += i;
+			bufsize -= i;
+			Buffer.position = 0;
+			Buffer.writeBytes(Buffer, i, bufsize);
+		}
+		last = (Readed == fileSize);
 	}
 
 	// Returns is stream ready to operate: header readed (1), not ready (0), error(-1)
 	public function ready(): Int {
+		if (channels == 0 || chunkSize == 0 || rate == 0 || sndDecoder==null || Readed < dataOff) return -1;
 		if (Readed < 0) return -1;
 		if (Readed < dataOff) return 0;
 		return 1;

@@ -26,7 +26,7 @@ function getPerc(a, b) {
 	return ((b==0?0.0:a/b)*100).toFixed(2);
 }
 function FileLoad(bytesLoad, bytesTotal) {
-    document.getElementById('InfoFile').innerHTML = "Loaded "+bytesLoad+"/"+bytesTotal+" bytes ("+getPerc(BytesLoad,BytesTotal)+"%)";
+	document.getElementById('InfoFile').innerHTML = "Loaded "+bytesLoad+"/"+bytesTotal+" bytes ("+getPerc(BytesLoad,BytesTotal)+"%)";
 }
 function SoundLoad(secLoad, secTotal) {
 	document.getElementById('InfoSound').innerHTML = "Available "+secLoad.toFixed(2)+"/"+secTotal.toFixed(2)+" seconds ("+getPerc(secLoad,secTotal)+"%)";
@@ -75,7 +75,7 @@ function init() {
 <a href="javascript:doPlay()">doPlay()</a>
 <a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
 <a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
-<a href="javascript:doPlay('direct-79012029585-1995.au')">doPlay('direct-79012029585-1995.au')</a>
+<a href="javascript:doPlay('hl-78003330781-5627.au')">doPlay('hl-78003330781-5627.au')</a>
 <a href="javascript:doStop()">doStop()</a>
 <br/>
 
@@ -83,24 +83,24 @@ function init() {
 <div id="InfoSound"></div>
 <div id="InfoState"></div>
 <object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-		width="20"
+		width="300"
 	height="20"
 	id="haxe"
 	align="middle">
-<param name="movie" value="wavplayer.swf?sound=test-vf-44100.au&"/>
+<param name="movie" value="wavplayer.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"/>
 <param name="allowScriptAccess" value="always" />
 <param name="quality" value="high" />
-<param name="scale" value="exactfit" />
+<param name="scale" value="noscale" />
 <param name="salign" value="lt" />
 <param name="bgcolor" value="#dddddd"/>
-<embed src="wavplayer.swf?sound=test-vf-44100.au&"
+<embed src="wavplayer.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"
 	   bgcolor="#dddddd"
-	   width="20"
+	   width="300"
 	   height="20"
 	   name="haxe"
 	   quality="high"
 	   align="middle"
-	   scale="exactfit"
+	   scale="noscale"
 	   allowScriptAccess="always"
 	   type="application/x-shockwave-flash"
 	   pluginspage="http://www.macromedia.com/go/getflashplayer"

@@ -19,6 +19,7 @@
 package fmt;
 
 class FileWav implements fmt.File {
+	public var last: Bool;
 	var Buffer: flash.utils.ByteArray;
 	var bufsize: Int;
 	var Readed: Int;
@@ -50,6 +51,7 @@ class FileWav implements fmt.File {
 		State = 0;
 		bps = 0;
 		align = 0;
+		last = false;
 	}
 
 	// Set known full file length
@@ -71,7 +73,7 @@ class FileWav implements fmt.File {
 		if (rate == 0 || chunkSize == 0 || dataOff == 0 || State<4)
 			return 0.0;
 		else
-			return ((Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
+			return Math.floor((bufsize+Readed-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -268,28 +270,43 @@ class FileWav implements fmt.File {
 					trace("Get data block begin (dataOff="+dataOff+"; State="+State+"; bufsize="+bufsize+")");
 				}
 			  default: // Read sound stream
-				trace("Read strem with ("+(bufsize-i)+") bytes");
-				var chk = 0;
-				while(bufsize - i >= chunkSize) {
-					for(j in 0...channels) {
-						sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
-						i += sndDecoder.sampleSize;
-					}
-					i += align;
-					chk++;
-				}
-				trace("Read "+chk+" chunks");
 				break;
 			}
 		}
 		// Remove processed bytes
 		Readed += i;
 		bufsize -= i;
+		Buffer.position = 0;
 		Buffer.writeBytes(Buffer, i, bufsize);
 	}
 
+	// Require decoder to populate at least <samples> samples from audio stream
+	public function populate(samples: Int): Void
+	{
+		if (ready() != 1) return;
+		var i = 0;
+		var chk = 0;
+		while(SoundBuffer[0].length < samples && bufsize - i > chunkSize) {
+			for(j in 0...channels) {
+				sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
+				i += sndDecoder.sampleSize;
+			}
+			i += align;
+			chk++;
+		}
+		trace("Read "+chk+" chunks");
+		// Remove processed bytes
+		Readed += i;
+		bufsize -= i;
+		Buffer.position = 0;
+		Buffer.writeBytes(Buffer, i, bufsize);
+		last = (Readed == fileSize);
+	}
+
 	// Returns is stream ready to operate: header readed (1), not ready (0), error(-1)
-	public function ready(): Int {
+	public function ready(): Int 
+	{
+		if (channels == 0 || chunkSize == 0 || rate == 0 || sndDecoder==null) return -1;
 		if (Readed < 0) return -1;
 		if (State < 4) return 0;
 		return 1;

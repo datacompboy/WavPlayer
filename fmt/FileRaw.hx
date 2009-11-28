@@ -17,6 +17,7 @@ package fmt;
 
 // FileRaw: stream raw file reader. Subclass it to define used sound decoder
 class FileRaw implements fmt.File {
+	public var last : Bool;
 	var Buffer: flash.utils.ByteArray;
 	var bufsize: Int;
 	var rate : Int;
@@ -37,6 +38,7 @@ class FileRaw implements fmt.File {
 		chunkSize = 0;
 		align = 0;
 		Readed = 0;
+		last = false;
 	}
 
 	private function init() {
@@ -64,7 +66,7 @@ class FileRaw implements fmt.File {
 		if (rate == 0 || chunkSize == 0)
 			return 0.0;
 		else
-			return (Readed/chunkSize)*sndDecoder.sampleLength / rate;
+			return Math.floor((bufsize+Readed)/chunkSize)*sndDecoder.sampleLength / rate;
 	}
 
 	// Push data from audio stream to decoder
@@ -76,9 +78,15 @@ class FileRaw implements fmt.File {
 		if (avail == 0) return;
 		bytes.readBytes(Buffer, bufsize, avail);
 		bufsize += avail;
+	}
+
+	// Require decoder to populate at least <samples> samples from audio stream
+	public function populate(samples: Int): Void
+	{
+		if (ready() != 1) return;
 		var i = 0;
 		var chk = 0;
-		while(bufsize - i > chunkSize) {
+		while(SoundBuffer[0].length < samples && bufsize - i > chunkSize) {
 			for(j in 0...channels) {
 				sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
 				i += sndDecoder.sampleSize;
@@ -90,7 +98,9 @@ class FileRaw implements fmt.File {
 		// Remove processed bytes
 		Readed += i;
 		bufsize -= i;
+		Buffer.position = 0;
 		Buffer.writeBytes(Buffer, i, bufsize);
+		last = (Readed == dataSize);
 	}
 
 	// Returns is stream ready to operate: header readed (1), not ready (0), error(-1)

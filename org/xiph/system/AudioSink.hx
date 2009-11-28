@@ -54,11 +54,11 @@ class AudioSink extends flash.events.EventDispatcher {
 	public function play() : Void {
 		if (triggered) return;
 		triggered = true;
-		trace("adding callback");
+		//trace("adding callback");
 		s.addEventListener("sampleData", _data_cb);
 		trace("playing");
 		sch = s.play();
-		trace(sch);
+		//trace(sch);
 		sch.addEventListener(flash.events.Event.SOUND_COMPLETE, soundCompleteHandler);
 		dispatchEvent(new PlayerEvent(PlayerEvent.PLAYING));
 	}
@@ -82,6 +82,7 @@ class AudioSink extends flash.events.EventDispatcher {
 		var missing = to_write < size ? size - to_write : 0;
 		var bytes : Int = to_write * 8;
 		if (to_write > 0) {
+			//trace("Write to sync bytes " + to_write);
 			event.data.writeBytes(buffer, 0, bytes);
 			available -= to_write;
 			System.bytescopy(buffer, bytes, buffer, 0, available * 8);

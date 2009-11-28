@@ -17,8 +17,11 @@ package fmt;
 
 // Generic file stream scanner interface
 interface File {
+	var last: Bool;
 	// Push data from audio stream to decoder
 	function push(bytes: flash.utils.IDataInput, last:Bool): Void;
+	// Require decoder to populate at least <samples> samples from audio stream
+	function populate(samples: Int): Void;
 	// Returns is stream ready to operate: header readed (1), not ready (0), error(-1)
 	function ready(): Int;
 	// Get sound samplerate is Hz
