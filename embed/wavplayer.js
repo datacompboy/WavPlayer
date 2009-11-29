@@ -1,5 +1,6 @@
-function WavPlayer(pid) {
+function WavPlayer(pid, heartext) {
 	this.pid = pid;
+	this.hearText = heartext;
 	this.SoundLen = 0;
 	this.SoundReady = 0;
 	this.SoundPos = 0;
@@ -41,6 +42,9 @@ function WavPlayer(pid) {
 		this.obj = obj;
 		this.stoptext = this.obj.innerHTML;
 		this.obj.onclick = function(){ window.WavPlayer.doStop(); return false; }
+		this.SoundPos = 0;
+		this.SoundReady = 0;
+		this.SoundLen = 0;
 		player.doPlay(obj.href);
 	}
 	this.doStop = function () {
@@ -68,9 +72,6 @@ function WavPlayer(pid) {
 		if (this.State=="STOPPED") {
 			this.obj.innerHTML = this.stoptext;
 			this.obj.onclick = (function(obj){ return function(){ window.WavPlayer.doPlay(obj); return false; } })(this.obj);
-			this.SoundPos = 0;
-			this.SoundReady = 0;
-			this.SoundLen = 0;
 			this.Last = undefined;
 		} else {
 			this.obj.innerHTML = this.SoundPos.toFixed(2)+"/"+this.SoundReady.toFixed(2)+"/"+this.SoundLen.toFixed(2);
@@ -108,7 +109,7 @@ function WavPlayer(pid) {
 			var as = document.body.getElementsByTagName("A");
 			for(var i = 0; i<as.length; i++) if (as[i].href.match(/[.](al|alaw|au|gsm|raw|sln|ul|ulaw|wav|wav49)$/i)) {
 				as[i].onclick = (function(obj){ return function(){ window.WavPlayer.doPlay(obj); return false; } })(as[i]);
-				as[i].innerHTML = "Прослушать";
+				as[i].innerHTML = this.hearText;
 			}
 			var wavhead = this.getId('wavplayhead');
 			if (wavhead) wavhead.innerHTML = "v:"+player.getVersion();
@@ -117,7 +118,7 @@ function WavPlayer(pid) {
 }
 function WavPlayerSoundLoad() { window.WavPlayer.SoundLoad.apply(window.WavPlayer, arguments); }
 function WavPlayerSoundState() { window.WavPlayer.SoundState.apply(window.WavPlayer, arguments); }
-window.WavPlayer = new WavPlayer('WavPlayerBlock');
+window.WavPlayer = new WavPlayer('WavPlayerBlock', "Прослушать");
 Event.domReady.add(function() {
 	var Player = document.createElement("div");
 	Player.style.display = "block";
