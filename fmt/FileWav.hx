@@ -123,10 +123,10 @@ class FileWav extends fmt.File {
 							//sndDecoder = new DecoderMSADPCM(bps);
 						  case 6:
 							trace("File in 8-bit G.711 a-law format");
-							sndDecoder = new DecoderG711a(bps);
+							sndDecoder = new DecoderG711a(bps, false);
 						  case 7:
 							trace("File in 8-bit G.711 mu-law format");
-							sndDecoder = new DecoderG711u(bps);
+							sndDecoder = new DecoderG711u(bps, false);
 						  case 17:
 							trace("File in IMA ADPCM");
 							Readed = -1; return;

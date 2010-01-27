@@ -15,15 +15,16 @@
  */
 package fmt;
 
-// FileRaw: stream raw file reader. Subclass it to define used sound decoder
-class FileAlaw extends fmt.FileRaw {
+// FileAlawInv: a-law encoded sound
+// Inverted bitorder
+class FileAlawInv extends fmt.FileRaw {
 	public function new() {
 		super();
 		rate = 8000;
 		channels = 1;
 		chunkSize = 1;
 		align = 0;
-		sndDecoder = new DecoderG711a(8, false);
+		sndDecoder = new DecoderG711a(8, true);
 		init();
 	}
 }

@@ -29,6 +29,7 @@ class Player extends flash.events.EventDispatcher {
 	var fname : String;
 	var first : Bool;
 	var timer : flash.utils.Timer;
+	var trigger : Null<Float>;
 	var pos : Null<Float>;
 
 	public function new(?path : String) {
@@ -38,7 +39,8 @@ class Player extends flash.events.EventDispatcher {
 		File = null;
 	}
 
-	public function play(?path : String) {
+	public function play(?path : String, ?trigger_buffer : Float) {
+		if (trigger_buffer != null) trigger = trigger_buffer;
 		if (path != null) fname = path;
 		if (fname == null) throw "No sound URL given";
 		// To-do: re-play already loaded stream
@@ -58,6 +60,12 @@ class Player extends flash.events.EventDispatcher {
 		} else
 		if ((~/[.](ulaw|ul|pcm|mu)$/i).match(fname)) {
 			Sound = new fmt.FileUlaw();
+		} else
+		if ((~/[.]la$/i).match(fname)) {
+			Sound = new fmt.FileAlawInv();
+		} else
+		if ((~/[.]lu$/i).match(fname)) {
+			Sound = new fmt.FileUlawInv();
 		} else
 		if ((~/[.]gsm$/i).match(fname)) {
 			Sound = new fmt.FileGsm();
@@ -87,7 +95,7 @@ class Player extends flash.events.EventDispatcher {
 	}
 	function initAsink() {
 		try {
-			asink = new org.xiph.system.AudioSink(8192, true, 44100*5);
+			asink = new org.xiph.system.AudioSink(8192, true, 44100*5, trigger==null?null:Math.round(trigger*44100));
 			asink.addEventListener(PlayerEvent.PLAYING, playingEvent);
 			asink.addEventListener(PlayerEvent.STOPPED, stoppedEvent);
 		} catch (error : Dynamic) {

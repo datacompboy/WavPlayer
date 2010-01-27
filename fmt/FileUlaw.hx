@@ -23,7 +23,7 @@ class FileUlaw extends fmt.FileRaw {
 		channels = 1;
 		chunkSize = 1;
 		align = 0;
-		sndDecoder = new DecoderG711u(8, 1);
+		sndDecoder = new DecoderG711u(8, false);
 		init();
 	}
 }

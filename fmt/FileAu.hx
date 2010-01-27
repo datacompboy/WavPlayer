@@ -83,10 +83,10 @@ class FileAu extends fmt.File {
 						switch ( format ) {
 						  case 1:
 							trace("File in 8-bit G.711 mu-law format");
-							sndDecoder = new DecoderG711u(8);
+							sndDecoder = new DecoderG711u(8, false);
 						  case 27: // Really 27!
 							trace("File in 8-bit G.711 a-law format");
-							sndDecoder = new DecoderG711a(8);
+							sndDecoder = new DecoderG711a(8, false);
 						  case 2:
 							trace("File in 8-bit PCM format");
 							sndDecoder = new DecoderPCM(8);

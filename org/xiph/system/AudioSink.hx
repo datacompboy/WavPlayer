@@ -30,6 +30,7 @@ class AudioSink extends flash.events.EventDispatcher {
 	public var available : Int;
 	var bufpos : Int;
 	var triggered : Bool;
+	var bufsize : Int;
 	var trigger : Int;
 	var bufstart : Int;
 	var fill : Bool;
@@ -39,14 +40,14 @@ class AudioSink extends flash.events.EventDispatcher {
 	var s : Sound;
 	var sch : SoundChannel;
 
-	public function new(chunk_size : Int, fill = true, trigger = 0) {
+	public function new(chunk_size : Int, fill = true, bufsize = 0, ?trigger : Int) {
 		super();
 		size = chunk_size;
 		this.fill = fill;
-		this.trigger = trigger;
-		if (this.trigger == -1)
-			this.trigger = size;
+		this.bufsize = bufsize > 0 ? bufsize : 5*44100;
+		this.trigger = trigger == null ? (bufsize > 0 ? bufsize : chunk_size) : trigger;
 		triggered = false;
+		trace("bufsize = "+this.bufsize+"; trigger="+this.trigger);
 
 		buffer = new Bytes();
 		available = 0;
@@ -128,9 +129,9 @@ class AudioSink extends flash.events.EventDispatcher {
 			var bufend = available + bufpos;
 			bufpos += to_write;
 			available -= to_write;
-			if (bufpos > trigger) {
-				var cutsize = bufpos - trigger;
-				bufpos = trigger;
+			if (bufpos > bufsize) {
+				var cutsize = bufpos - bufsize;
+				bufpos = bufsize;
 				bufstart += cutsize;
 				System.bytescopy(buffer, cutsize*8, buffer, 0, (bufend-cutsize)*8);
 			}

@@ -66,6 +66,23 @@ class WavPlayerGuiEvent extends flash.events.Event {
    }
 }
 
+class WavPlayerGui_None extends WavPlayerGui {
+	var sprite: flash.display.Sprite;
+	public inline function new(root, myMenu) {
+		super();
+		sprite = new flash.display.MovieClip();
+		sprite.contextMenu = myMenu;
+		sprite.useHandCursor = false;
+		sprite.buttonMode = false;
+		var Sizer = Sizer(1,1);
+		sprite.addChild(Sizer);
+		root.addChild(sprite);
+	}
+	public override function drawStopped() { }
+	public override function drawBuffering() { }
+	public override function drawPlaying() { }
+	public override function drawPaused() { }
+}
 class WavPlayerGui_Mini extends WavPlayerGui {
 	var sprite: flash.display.Sprite;
 	public inline function new(root, myMenu, zoom:Float=1, x:Float=0, y:Float=0) {
@@ -276,7 +293,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-	static var Version = "1.6.1";
+	static var Version = "1.7.1";
 	static var player : Player;
 	static var state : String = PlayerEvent.STOPPED;
 	static var handlers : List<JsEventHandler>;
@@ -303,6 +320,8 @@ class WavPlayer {
 		if (fvs.gui == "full") {
 			var width:Float = Std.parseInt(fvs.w); width = (width>0?width:40.0) / zoom / 40.0;
 			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1);
+		} else if(fvs.gui == "none") {
+			iface = new WavPlayerGui_None(flash.Lib.current, myMenu);
 		} else {
 			iface = new WavPlayerGui_Mini(flash.Lib.current, myMenu, zoom);
 		}
@@ -326,6 +345,9 @@ class WavPlayer {
 		try flash.external.ExternalInterface.addCallback("getVersion",doGetVer) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("doPlay",doPlay) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("doStop",doStop) catch( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("doPause",doPause) catch( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("doResume",doResume) catch( e : Dynamic ) {};
+		try flash.external.ExternalInterface.addCallback("doSeek",doSeek) catch( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
@@ -396,15 +418,24 @@ class WavPlayer {
 	static function doGetVer( ) {
 		return Version;
 	}
-	static function doPlay( ?fname: String ) {
+	static function doPlay( ?fname: String, ?buffer: Float ) {
 		player.stop();
 		lastNotifyProgress = 0;
 		lastNotifyLoad = 0;
 		iface.setPosition(0); 
-		player.play(fname);
+		player.play(fname, buffer);
 	}
 	static function doStop( ) {
 		player.stop();
+	}
+	static function doPause( ) {
+		player.pause();
+	}
+	static function doResume( ) {
+		player.resume();
+	}
+	static function doSeek( ?pos: Float ) {
+		player.seek(pos);
 	}
 	static function doAttach( event: String, handler: String, ?user: String ) {
 		var id = handlerId++;

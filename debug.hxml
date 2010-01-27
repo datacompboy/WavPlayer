@@ -2,3 +2,4 @@
 -main WavPlayer
 -swf-version 10
 -swf-header 400:800:40:ffffff
+-debug

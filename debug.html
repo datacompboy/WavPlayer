@@ -11,7 +11,7 @@ function getPlayer(pid) {
 }
 function doPlay(fname) {
 	var player = getPlayer('haxe');
-	player.doPlay(fname);
+	player.doPlay(fname,0.01);
 }
 function doStop() {
 	var player = getPlayer('haxe');
@@ -39,7 +39,8 @@ function init() {
 <a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
 <a href="javascript:doPlay('test.au')">doPlay('test.au')</a>
 <a href="javascript:doPlay('hl-78003330781-5627.au')">doPlay('hl-78003330781-5627.au')</a>
-<a href="javascript:doStop()">doStop()</a>
+<a href="javascript:doStop()">doStop()</a><br/>
+<input id='file' /><a href="javascript:doPlay(document.getElementById('file').value)">Play by filename</a>
 <div id="jsLog" style="border:1px solid red"></div>
 <br/>
 
@@ -54,7 +55,7 @@ function init() {
 <param name="scale" value="noscale" />
 <param name="salign" value="lt" />
 <param name="bgcolor" value="#ffffff"/>
-<embed src="wavplayer-debug.swf?gui=full&h=40&w=400&sound=test.au&3"
+<embed src="wavplayer-debug.swf?gui=full&h=40&w=400&sound=test.au&4"
 	   bgcolor="#ffffff"
 	   width="1200"
 	   height="400"
