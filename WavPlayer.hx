@@ -85,8 +85,10 @@ class WavPlayerGui_None extends WavPlayerGui {
 }
 class WavPlayerGui_Mini extends WavPlayerGui {
 	var sprite: flash.display.Sprite;
-	public inline function new(root, myMenu, zoom:Float=1, x:Float=0, y:Float=0) {
+        var color: Int;
+	public inline function new(root, myMenu, zoom:Float=1, x:Float=0, y:Float=0, color=0x808080) {
 		super();
+                this.color = color;
 		sprite = new flash.display.MovieClip();
 		sprite.contextMenu = myMenu;
 		sprite.useHandCursor = true;
@@ -108,9 +110,9 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	public override function drawStopped() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(4, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(4, color, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
-		g.beginFill(0x808080);
+		g.beginFill(color);
 		g.moveTo(8, 6);
 		g.lineTo(30, 20);
 		g.lineTo(8, 34);
@@ -120,16 +122,16 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	public override function drawBuffering() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(4, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(4, color, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.drawCircle(20, 20, 10);
 	}
 	public override function drawPlaying() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(6, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(6, color, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
-		g.beginFill(0x808080);
+		g.beginFill(color);
 		g.moveTo(8, 8);
 		g.lineTo(32, 8);
 		g.lineTo(32, 32);
@@ -140,7 +142,7 @@ class WavPlayerGui_Mini extends WavPlayerGui {
 	public override function drawPaused() {
 		var g:flash.display.Graphics = sprite.graphics;
 		g.clear();
-		g.lineStyle(8, 0x808080, 1, true, flash.display.LineScaleMode.NORMAL,
+		g.lineStyle(8, color, 1, true, flash.display.LineScaleMode.NORMAL,
 					flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 		g.moveTo(12, 8);
 		g.lineTo(12, 32);
@@ -165,7 +167,8 @@ class WavPlayerGui_Full extends WavPlayerGui {
 	var zoom: Float;
 	var timer: flash.utils.Timer;
 	var lastTime: Float;
-	public inline function new(root : flash.display.Sprite, myMenu, zoom:Float=1, size:Float=10) {
+	public inline function new(root : flash.display.Sprite, myMenu, zoom:Float=1, size:Float=10, 
+                                   bg_color=0x303030, ready_color=0xA0A0A0, cursor_color=0x7FA03F, button_color=0x808080) {
 		super();
 		this.zoom = zoom;
 		sprite = new flash.display.MovieClip();
@@ -179,7 +182,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		sprite.x = 40*zoom;
 		sprite.y = 0;
 		sprite.addChild(Sizer(40.0*size*zoom,40.0*zoom));
-		GuiMini = new WavPlayerGui_Mini(root, myMenu, zoom, -3);
+		GuiMini = new WavPlayerGui_Mini(root, myMenu, zoom, -3, 0, button_color);
 		GuiMini.addEventListener(WavPlayerGuiEvent.CLICKED, proxyEvent);
 		GuiMini.addEventListener(WavPlayerGuiEvent.DBLCLICKED, proxyEvent);
 
@@ -187,7 +190,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		rectFile.scaleX = 1;
 		rectFile.scaleY = 1;
 		rectFile.scaleZ = 1;
-		rectFile.addChild(Sizer(40.0*size*zoom+3,26.0*zoom,0x303030,1));
+		rectFile.addChild(Sizer(40.0*size*zoom+3,26.0*zoom,bg_color,1));
 		sprite.addChild(rectFile);
 		rectFile.x = -2;
 		rectFile.y = 7*zoom;
@@ -196,7 +199,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		rectReady.scaleX = 1;
 		rectReady.scaleY = 1;
 		rectReady.scaleZ = 1;
-		rectReady.addChild(Sizer(40.0*size*zoom,10.0*zoom,0xA0A0A0,1));
+		rectReady.addChild(Sizer(40.0*size*zoom,10.0*zoom,ready_color,1));
 		sprite.addChild(rectReady);
 		rectReady.x = 0;
 		rectReady.y = 15*zoom;
@@ -214,7 +217,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		rectMark.scaleX = 1;
 		rectMark.scaleY = 1;
 		rectMark.scaleZ = 1;
-		rectMark.addChild(Sizer(5.0*zoom,40.0*zoom,0x7FA03F,1));
+		rectMark.addChild(Sizer(5.0*zoom,40.0*zoom,cursor_color,1));
 		sprite.addChild(rectMark);
 		width = 40.0*size*zoom;
 		rectMark.x = width*0.0-3;
@@ -302,6 +305,7 @@ class WavPlayer {
 	static var lastNotifyLoad : Float;
 	static var iface : WavPlayerGui;
 	static function main() {
+
 		trace("WavPlayer "+Version+" - startup");
 		var myMenu = new flash.ui.ContextMenu();
 		var ciVer = new flash.ui.ContextMenuItem("WavPlayer "+Version);
@@ -317,13 +321,21 @@ class WavPlayer {
 		lastNotifyLoad = 0;
 
 		var zoom:Float = Std.parseInt(fvs.h); zoom = (zoom>0?zoom:40.0) / 40.0;
+                var bg_color:     Int = 0x303030; 
+                var ready_color:  Int = 0xA0A0A0;
+                var cursor_color: Int = 0x7FA03F;
+                var button_color: Int = 0x808080;
+                if (fvs.bg_color != null) bg_color = Std.parseInt(fvs.bg_color);
+                if (fvs.ready_color != null) ready_color = Std.parseInt(fvs.ready_color);
+                if (fvs.cursor_color != null) cursor_color = Std.parseInt(fvs.cursor_color);
+                if (fvs.button_color != null) button_color = Std.parseInt(fvs.button_color);
 		if (fvs.gui == "full") {
 			var width:Float = Std.parseInt(fvs.w); width = (width>0?width:40.0) / zoom / 40.0;
-			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1);
+			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1, bg_color, ready_color, cursor_color, button_color);
 		} else if(fvs.gui == "none") {
 			iface = new WavPlayerGui_None(flash.Lib.current, myMenu);
 		} else {
-			iface = new WavPlayerGui_Mini(flash.Lib.current, myMenu, zoom);
+			iface = new WavPlayerGui_Mini(flash.Lib.current, myMenu, zoom, 0, 0, button_color);
 		}
 		iface.addEventListener(WavPlayerGuiEvent.CLICKED, handleClicked);
 		iface.addEventListener(WavPlayerGuiEvent.DBLCLICKED, handleDblClicked);
@@ -338,6 +350,7 @@ class WavPlayer {
 		player.addEventListener(PlayerEvent.STOPPED, handleStopped);
 		player.addEventListener(PlayerEvent.PAUSED, handlePaused);
 		player.addEventListener(flash.events.ProgressEvent.PROGRESS, handleProgress);
+		player.addEventListener(flash.events.IOErrorEvent.IO_ERROR, handleError);
 		player.addEventListener(PlayerLoadEvent.LOAD, handleLoad);
 
 		if( !flash.external.ExternalInterface.available )
@@ -351,6 +364,12 @@ class WavPlayer {
 		try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
+
+                //calls a callback indicating that this player is ready
+                if(fvs.id != null)
+                  flash.external.ExternalInterface.call("onWavPlayerReady", fvs.id);
+                else
+                  flash.external.ExternalInterface.call("onWavPlayerReady", flash.external.ExternalInterface.objectID);
 	}
 	static function handleSeeking(event:WavPlayerGuiEvent) {
 		player.seek(event.position);
@@ -374,6 +393,10 @@ class WavPlayer {
 		if (event.position!=null) iface.setPosition(event.position);
 		iface.drawBuffering();
 		fireJsEvent(event.type, event.position);
+	}
+	static function handleError(event:flash.events.IOErrorEvent) {
+		trace("Error event: "+event);
+		fireJsEvent(event.type);
 	}
 	static function handlePlaying(event:PlayerEvent) {
 		trace("Playing event: "+event);

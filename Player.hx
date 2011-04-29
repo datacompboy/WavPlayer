@@ -80,6 +80,7 @@ class Player extends flash.events.EventDispatcher {
 			var Req = new flash.net.URLRequest(fname);
 			File.addEventListener(flash.events.Event.COMPLETE, completeHandler);
 			File.addEventListener(flash.events.ProgressEvent.PROGRESS, progressHandler);
+			File.addEventListener(flash.events.IOErrorEvent.IO_ERROR, errorHandler);
 			trace("Load begin!");
 			first = true;
 			File.load(Req);
@@ -171,7 +172,11 @@ class Player extends flash.events.EventDispatcher {
         }
 		dispatchEvent(event); // here we fire byte progress
 	}
-	
+	function errorHandler(event:flash.events.IOErrorEvent) {
+		trace("ERROR ERROR");
+                dispatchEvent(event);
+	}
+
 	function timeout(event:Null<flash.events.Event>) {
 		if (asink.available < 44100*5) {
 			read(event == null);
