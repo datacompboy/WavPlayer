@@ -39,6 +39,13 @@ Flash interface:
 	3: (none) no interface at all. transparent dot displayed.
 			To select it, pass gui=none in arguments
 
+Flash Interface customize:
+	Pass parameters to specify colors:
+        bg_color:     (default 0x303030) Color of background
+        ready_color:  (default 0xA0A0A0) Color of loaded bar
+        cursor_color: (default 0x7FA03F) Color of cursor mark
+        button_color: (default 0x808080) Color of play/pause button
+
 JS interface:
 	doPlay([filename][, buffer])
 		start playback of given filename. if filename not given -- play last
@@ -57,6 +64,10 @@ JS interface:
 		detach all Event handlers, identified by Event/Handler/User triplet
 	removeHandler(HandlerId)
 		detach event handler, identified by handlerId, returent by previous call to attachHandler
+
+JS callbacks:
+	onWavPlayerReady(id)
+		fired when wavPlayer ready to be controlled
 
 JS events:
 		!!! WARNING !!! 
