@@ -46,6 +46,9 @@ Flash Interface customize:
         cursor_color: (default 0x7FA03F) Color of cursor mark
         button_color: (default 0x808080) Color of play/pause button
 
+		minor_tick_color: (default 0x006600) Color of minor tick score
+		major_tick_color: (default 0x000066) Color of major tick score
+
 JS interface:
 	doPlay([filename][, buffer])
 		start playback of given filename. if filename not given -- play last
