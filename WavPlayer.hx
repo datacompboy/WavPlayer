@@ -167,10 +167,17 @@ class WavPlayerGui_Full extends WavPlayerGui {
 	var zoom: Float;
 	var timer: flash.utils.Timer;
 	var lastTime: Float;
+    var minor_tick_color: Int;
+    var major_tick_color: Int;
+    
 	public inline function new(root : flash.display.Sprite, myMenu, zoom:Float=1, size:Float=10, 
-                                   bg_color=0x303030, ready_color=0xA0A0A0, cursor_color=0x7FA03F, button_color=0x808080) {
+                               bg_color=0x303030, ready_color=0xA0A0A0, cursor_color=0x7FA03F, button_color=0x808080,
+                               minor_tick_color=0x006600, major_tick_color=0x000066) {
 		super();
 		this.zoom = zoom;
+        this.minor_tick_color = minor_tick_color;
+        this.major_tick_color = major_tick_color;
+        
 		sprite = new flash.display.MovieClip();
 		sprite.contextMenu = myMenu;
 		sprite.scaleX = 1;
@@ -235,15 +242,15 @@ class WavPlayerGui_Full extends WavPlayerGui {
 		if (oldlen != length && length > 0) {
 			var g:flash.display.Graphics = minTicks.graphics;
 			g.clear();
-			g.lineStyle(1, 0x60EF30, 1, true, flash.display.LineScaleMode.NONE,
+			g.lineStyle(1, this.minor_tick_color, 1, true, flash.display.LineScaleMode.NONE,
 						flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 			var i: Int = 0;
 			while( (i+=10) < length ) if (i%60!=0) {
-				var x = width*(i/length)-3;
+                    var x = width*(i/length)-3;
 				g.moveTo(x, 0);
 				g.lineTo(x, 10);
 			}
-			g.lineStyle(3, 0x3080FF, 1, true, flash.display.LineScaleMode.NORMAL,
+			g.lineStyle(3, this.major_tick_color, 1, true, flash.display.LineScaleMode.NORMAL,
 						flash.display.CapsStyle.ROUND, flash.display.JointStyle.ROUND);
 			i = 0;
 			while( (i+=60) < length ) {
@@ -321,17 +328,26 @@ class WavPlayer {
 		lastNotifyLoad = 0;
 
 		var zoom:Float = Std.parseInt(fvs.h); zoom = (zoom>0?zoom:40.0) / 40.0;
-                var bg_color:     Int = 0x303030; 
-                var ready_color:  Int = 0xA0A0A0;
-                var cursor_color: Int = 0x7FA03F;
-                var button_color: Int = 0x808080;
-                if (fvs.bg_color != null) bg_color = Std.parseInt(fvs.bg_color);
-                if (fvs.ready_color != null) ready_color = Std.parseInt(fvs.ready_color);
-                if (fvs.cursor_color != null) cursor_color = Std.parseInt(fvs.cursor_color);
-                if (fvs.button_color != null) button_color = Std.parseInt(fvs.button_color);
+        var bg_color:     Int = 0x303030; 
+        var ready_color:  Int = 0xA0A0A0;
+        var cursor_color: Int = 0x7FA03F;
+        var button_color: Int = 0x808080;
+        var minor_tick_color: Int = 0x006600;
+        var major_tick_color: Int = 0x000066;
+        
+        if (fvs.bg_color != null) bg_color = Std.parseInt(fvs.bg_color);
+        if (fvs.ready_color != null) ready_color = Std.parseInt(fvs.ready_color);
+        if (fvs.cursor_color != null) cursor_color = Std.parseInt(fvs.cursor_color);
+        if (fvs.button_color != null) button_color = Std.parseInt(fvs.button_color);
+
+        if (fvs.minor_tick_color != null) minor_tick_color = Std.parseInt(fvs.minor_tick_color);
+        if (fvs.major_tick_color != null) major_tick_color = Std.parseInt(fvs.major_tick_color);
+        
 		if (fvs.gui == "full") {
 			var width:Float = Std.parseInt(fvs.w); width = (width>0?width:40.0) / zoom / 40.0;
-			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1, bg_color, ready_color, cursor_color, button_color);
+			iface = new WavPlayerGui_Full(flash.Lib.current, myMenu, zoom, width-1, bg_color, ready_color,
+                                          cursor_color, button_color,
+                                          minor_tick_color, major_tick_color);
 		} else if(fvs.gui == "none") {
 			iface = new WavPlayerGui_None(flash.Lib.current, myMenu);
 		} else {
@@ -365,11 +381,11 @@ class WavPlayer {
 		try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
 		try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
 
-                //calls a callback indicating that this player is ready
-                if(fvs.id != null)
-                  flash.external.ExternalInterface.call("onWavPlayerReady", fvs.id);
-                else
-                  flash.external.ExternalInterface.call("onWavPlayerReady", flash.external.ExternalInterface.objectID);
+        //calls a callback indicating that this player is ready
+        if(fvs.id != null)
+            flash.external.ExternalInterface.call("onWavPlayerReady", fvs.id);
+        else
+            flash.external.ExternalInterface.call("onWavPlayerReady", flash.external.ExternalInterface.objectID);
 	}
 	static function handleSeeking(event:WavPlayerGuiEvent) {
 		player.seek(event.position);
@@ -377,10 +393,10 @@ class WavPlayer {
 	static function handleClicked(event:flash.events.Event) {
 		trace("Clicked event: "+event);
 		switch( state ) {
-		  case PlayerEvent.STOPPED:   player.play();
-		  case PlayerEvent.BUFFERING: player.stop();
-		  case PlayerEvent.PLAYING:   player.pause();
-		  case PlayerEvent.PAUSED:	  player.resume();
+            case PlayerEvent.STOPPED:   player.play();
+            case PlayerEvent.BUFFERING: player.stop();
+            case PlayerEvent.PLAYING:   player.pause();
+            case PlayerEvent.PAUSED:	  player.resume();
 		}
 	}
 	static function handleDblClicked(event:flash.events.Event) {
@@ -467,13 +483,13 @@ class WavPlayer {
 	}
 	static function doDetach( event: String, handler: String, ?user: String ) {
 		handlers = handlers.filter(function(h: JsEventHandler): Bool {
-			return !(h.Event==event && h.Handler == handler && h.User==user);
-		});
+                return !(h.Event==event && h.Handler == handler && h.User==user);
+            });
 	}
 	static function doRemove( handler: Int ) {
 		handlers = handlers.filter(function(h: JsEventHandler): Bool {
-			return h.Id != handler;
-		});
+                return h.Id != handler;
+            });
 	}
 	static function fireJsEvent( event: String, ?p1: Dynamic, ?p2: Dynamic) {
 		for (h in handlers) {
@@ -481,10 +497,10 @@ class WavPlayer {
 				if (h.User != null) flash.external.ExternalInterface.call(h.Handler, h.User, p1, p2);
 				else flash.external.ExternalInterface.call(h.Handler, p1, p2);
 			} else
-			if (h.Event == '*') {
-				if (h.User != null) flash.external.ExternalInterface.call(h.Handler, event, h.User, p1, p2);
-				else flash.external.ExternalInterface.call(h.Handler, event, p1, p2);
-			}
+                if (h.Event == '*') {
+                    if (h.User != null) flash.external.ExternalInterface.call(h.Handler, event, h.User, p1, p2);
+                    else flash.external.ExternalInterface.call(h.Handler, event, p1, p2);
+                }
 		}
 	}
 }
