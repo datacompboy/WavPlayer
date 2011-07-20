@@ -168,7 +168,7 @@ class Player extends flash.events.EventDispatcher {
         if (first) {
             first = false;
             if (event.bytesTotal>0)
-                Sound.setSize(Math.round(event.bytesTotal));
+                Sound.setSize(Std.int(event.bytesTotal));
         }
         dispatchEvent(event); // here we fire byte progress
     }

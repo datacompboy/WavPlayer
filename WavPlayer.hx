@@ -372,11 +372,22 @@ class WavPlayer {
         if( !flash.external.ExternalInterface.available )
             throw "External Interface not available";
         try flash.external.ExternalInterface.addCallback("getVersion",doGetVer) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("doPlay",doPlay) catch( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("play",doPlay) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("doStop",doStop) catch( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("stop",doStop) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("doPause",doPause) catch( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("pause",doPause) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("doResume",doResume) catch( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("resume",doResume) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("doSeek",doSeek) catch( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("seek",doSeek) catch( e : Dynamic ) {};
+
         try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
         try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
         try flash.external.ExternalInterface.addCallback("removeHandler",doRemove) catch ( e : Dynamic ) {};
