@@ -22,6 +22,7 @@ import flash.Vector;
 
 import flash.media.Sound;
 import flash.media.SoundChannel;
+import flash.media.SoundTransform;
 import flash.events.SampleDataEvent;
 
 
@@ -36,11 +37,15 @@ class AudioSink extends flash.events.EventDispatcher {
     var fill : Bool;
     var size : Int;
     public var pos : Float;
+    public var volume(getVolume, setVolume): Float;
+    public var pan(getPan, setPan): Float;
+    public var soundTransform(getST, setST): SoundTransform;
 
     var s : Sound;
     var sch : SoundChannel;
+    var schtr : SoundTransform;
 
-    public function new(chunk_size : Int, fill = true, bufsize = 0, ?trigger : Int) {
+    public function new(chunk_size : Int, fill = true, bufsize = 0, ?trigger : Int, ?st: SoundTransform) {
         super();
         size = chunk_size;
         this.fill = fill;
@@ -56,7 +61,41 @@ class AudioSink extends flash.events.EventDispatcher {
         pos = 0.0;
         s = new Sound();
         s.addEventListener("sampleData", _data_cb);
+        if (st == null) schtr = new SoundTransform();
+        else schtr = st;
         sch = null;
+    }
+
+    public function setVolume(volume: Float): Float {
+        this.schtr.volume=volume;
+        this.soundTransform = this.soundTransform;
+        return volume;
+    }
+
+    public function getVolume(): Float {
+        return this.schtr.volume;
+    }
+
+    public function setPan(pan: Float): Float {
+        this.schtr.pan=pan;
+        this.soundTransform = this.soundTransform;
+        return this.schtr.pan;
+    }
+
+    public function getPan(): Float {
+        return this.schtr.pan;
+    }
+
+    public function setST(st: SoundTransform): SoundTransform {
+        this.schtr = st;
+        if (this.sch!=null) {
+            this.sch.soundTransform = this.schtr;
+        }
+        return this.schtr;
+    }
+
+    public function getST(): SoundTransform {
+        return this.schtr;
     }
 
     public function play(?position: Float) : Bool {
@@ -88,6 +127,8 @@ class AudioSink extends flash.events.EventDispatcher {
         
         trace("playing");
         sch = s.play();
+        sch.soundTransform = this.schtr;
+        trace("SoundTransform volume = "+this.schtr.volume);
         sch.addEventListener(flash.events.Event.SOUND_COMPLETE, soundCompleteHandler);
         dispatchEvent(new PlayerEvent(PlayerEvent.PLAYING, pos));
         return true;

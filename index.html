@@ -17,6 +17,14 @@ function doStop() {
 	var player = getPlayer('haxe');
 	player.doStop();
 }
+function setVolume(v) {
+	var player = getPlayer('haxe');
+	player.setVolume(v);
+}
+function setPan(p) {
+	var player = getPlayer('haxe');
+	player.setPan(p);
+}
 var SoundLen = 0;
 var SoundPos = 0;
 var Last = undefined;
@@ -40,7 +48,7 @@ function Inform() {
 		SoundPos += interval;
 		Last = now;
 	}
-	InfoState.innerHTML = State + "("+SoundPos.toFixed(2)+"/"+SoundLen.toFixed(2)+" sec ("+getPerc(SoundPos,SoundLen)+"%)";
+	InfoState.innerHTML = State + "("+SoundPos.toFixed(2)+"/"+SoundLen.toFixed(2)+") sec ("+getPerc(SoundPos,SoundLen)+"%)";
 }
 function SoundState(state, position) {
 	if (position != undefined) SoundPos = position;
@@ -77,9 +85,20 @@ function init() {
 
 <a href="javascript:doPlay()">doPlay()</a>
 <a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
-<a href="javascript:doPlay('test-vf-44100.au')">doPlay('test-vf-44100.au')</a>
-<a href="javascript:doPlay('hl-78003330781-5627.au')">doPlay('hl-78003330781-5627.au')</a>
+<a href="javascript:doPlay('test.au')">doPlay('test.au')</a>
+<a href="javascript:doPlay('direct-5683.au')">doPlay('direct-5683.au')</a>
 <a href="javascript:doStop()">doStop()</a>
+<br />
+<a href="javascript:setVolume(5.0)">Volume 500%</a>
+<a href="javascript:setVolume(2.0)">Volume 200%</a>
+<a href="javascript:setVolume(1.0)">Volume 100%</a>
+<a href="javascript:setVolume(0.5)">Volume 50%</a>
+<a href="javascript:setVolume(0.1)">Volume 10%</a>
+<a href="javascript:setVolume(0.0)">Volume 0% (mute)</a>
+<br />
+<a href="javascript:setPan(0.0)">Balance: center</a>
+<a href="javascript:setPan(-1.0)">Balance: left</a>
+<a href="javascript:setPan(1.0)">Balance: right</a>
 <br/>
 
 <div id="InfoFile"></div>

@@ -50,17 +50,27 @@ Flash Interface customize:
         major_tick_color: (default 0x000066) Color of major tick score
 
 JS interface:
-    doPlay([filename][, buffer])
+    doPlay([filename][, buffer]) or play([filename][, buffer])
         start playback of given filename. if filename not given -- play last
         buffer argument says minimum buffer length needed to start playback
-    doStop()
+    doStop() or stop()
         stop playback of current file
-    doPause()
+    doPause() or pause()
         pauses playback of current file
-    doResume()
+    doResume() or resume()
         resume playback of current file after pause. will throw error if not started
-    doSeek(pos)
+    doSeek(pos) or seek()
         seeks playback to position (in seconds)
+    setVolume(value) or volume(value)
+        set playback volume to specifed value. 1.0 by default
+        initial value get from flash parameter "value"
+    getVolume() or volume()
+        get playback volume
+    setPan(value) or pan(value)
+        set playback pan (-1.0 is 100% left, 0.0 is center(default), 1.0 is 100% right)
+        initial value get from flash parameter "pan"
+    getPan(value) or pan()
+        get playback pan
     attachHandler(Event, Handler[, User]) -> handlerId
         when Event occurs, Handler will be called, with optionally User info as first argument
     detachHandler(Event, Handler[, User])

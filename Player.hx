@@ -13,6 +13,7 @@
  * version 2 for more details (a copy is included in the LICENSE file that
  * accompanied this code).
  */
+import flash.media.SoundTransform;
 
 // Main player class: loads stream, process it by appropriate file decoder,
 // that will initialize correct sound decoder. Decoded audio samples 
@@ -32,8 +33,14 @@ class Player extends flash.events.EventDispatcher {
     var trigger : Null<Float>;
     var pos : Null<Float>;
 
+    var schtr: SoundTransform;
+    public var volume(getVolume, setVolume): Float;
+    public var pan(getPan, setPan): Float;
+    public var soundTransform(getST, setST): SoundTransform;
+
     public function new(?path : String) {
         super();
+        schtr = new SoundTransform();
         fname = path;
         asink = null;
         File = null;
@@ -96,7 +103,7 @@ class Player extends flash.events.EventDispatcher {
     }
     function initAsink() {
         try {
-            asink = new org.xiph.system.AudioSink(8192, true, 44100*5, trigger==null?null:Math.round(trigger*44100));
+            asink = new org.xiph.system.AudioSink(8192, true, 44100*5, trigger==null?null:Math.round(trigger*44100), schtr);
             asink.addEventListener(PlayerEvent.PLAYING, playingEvent);
             asink.addEventListener(PlayerEvent.STOPPED, stoppedEvent);
         } catch (error : Dynamic) {
@@ -104,6 +111,39 @@ class Player extends flash.events.EventDispatcher {
             trace(haxe.Stack.exceptionStack());
             throw error;
         }
+    }
+
+    public function setVolume(volume: Float): Float {
+        this.schtr.volume=volume;
+        trace("setVolume("+volume+")");
+        this.soundTransform = this.soundTransform; // Apply changes
+        return volume;
+    }
+
+    public function getVolume(): Float {
+        return this.schtr.volume;
+    }
+
+    public function setPan(pan: Float): Float {
+        this.schtr.pan=pan;
+        this.soundTransform = this.soundTransform; // Apply changes
+        return this.schtr.pan;
+    }
+
+    public function getPan(): Float {
+        return this.schtr.pan;
+    }
+
+    public function setST(st: SoundTransform): SoundTransform {
+        this.schtr = st;
+        if (this.asink!=null) {
+            this.asink.soundTransform = this.schtr;
+        }
+        return this.schtr;
+    }
+
+    public function getST(): SoundTransform {
+        return this.schtr;
     }
 
     function playingEvent(event:PlayerEvent) {

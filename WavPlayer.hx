@@ -303,7 +303,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-    static var Version = "1.7.3";
+    static var Version = "1.7.4";
     static var player : Player;
     static var state : String = PlayerEvent.STOPPED;
     static var handlers : List<JsEventHandler>;
@@ -326,6 +326,11 @@ class WavPlayer {
 
         lastNotifyProgress = 0;
         lastNotifyLoad = 0;
+
+        var volume: Float = 1.0;
+        var pan: Float = 0.0;
+        if (fvs.volume != null) volume = Std.parseFloat(fvs.volume);
+        if (fvs.pan != null) pan = Std.parseFloat(fvs.pan);
 
         var zoom:Float = Std.parseInt(fvs.h); zoom = (zoom>0?zoom:40.0) / 40.0;
         var bg_color:     Int = 0x303030; 
@@ -368,6 +373,8 @@ class WavPlayer {
         player.addEventListener(flash.events.ProgressEvent.PROGRESS, handleProgress);
         player.addEventListener(flash.events.IOErrorEvent.IO_ERROR, handleError);
         player.addEventListener(PlayerLoadEvent.LOAD, handleLoad);
+        player.volume = volume;
+        player.pan = pan;
 
         if( !flash.external.ExternalInterface.available )
             throw "External Interface not available";
@@ -387,6 +394,14 @@ class WavPlayer {
 
         try flash.external.ExternalInterface.addCallback("doSeek",doSeek) catch( e : Dynamic ) {};
         try flash.external.ExternalInterface.addCallback("seek",doSeek) catch( e : Dynamic ) {};
+
+        try flash.external.ExternalInterface.addCallback("volume",doVolume) catch ( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("setVolume",doVolume) catch ( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("getVolume",doVolume) catch ( e : Dynamic ) {};
+
+        try flash.external.ExternalInterface.addCallback("pan",doPan) catch ( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("setPan",doPan) catch ( e : Dynamic ) {};
+        try flash.external.ExternalInterface.addCallback("getPan",doPan) catch ( e : Dynamic ) {};
 
         try flash.external.ExternalInterface.addCallback("attachHandler",doAttach) catch ( e : Dynamic ) {};
         try flash.external.ExternalInterface.addCallback("detachHandler",doDetach) catch ( e : Dynamic ) {};
@@ -487,6 +502,21 @@ class WavPlayer {
     static function doSeek( ?pos: Float ) {
         player.seek(pos);
     }
+    static function doVolume( ?volume: Float ): Float {
+        if (volume != null) {
+            player.volume = volume;
+        }
+		trace("doVolume("+volume+")");
+        return player.volume;
+    }
+    static function doPan( ?pan: Float ): Float {
+        if (pan != null) {
+            player.pan = pan;
+        }
+		trace("doPan("+pan+")");
+        return player.pan;
+    }
+
     static function doAttach( event: String, handler: String, ?user: String ) {
         var id = handlerId++;
         handlers.push(new JsEventHandler(id, event, handler, user));
