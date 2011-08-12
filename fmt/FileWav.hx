@@ -76,7 +76,7 @@ class FileWav extends fmt.File {
 					dataOff = i;
 				}
 			  case 1: // Read fmt block
-				if (i-dataOff < 24) {
+				if (i-dataOff < 24 || i-dataOff < dataSize+8) {
 					if (bufsize-i < 4) break;
 					var W1 = Buffer[i+1]*256+Buffer[i];
 					var W2 = Buffer[i+3]*256+Buffer[i+2];
@@ -102,9 +102,11 @@ class FileWav extends fmt.File {
 						bps = W2;
 						align = W1;
 						trace("align = "+align+"; bps="+bps);
+					  case 24:
+						trace("Appendix W1="+W1+", W2="+W2+", DW="+DW);
 					}
 					i += 4;
-					if (i-dataOff == 24) {
+					if (i-dataOff == dataSize+8) {
 						if (channels < 1 || channels > 2) {
 							trace("Wrong number of channels: "+channels);
 							Readed = -1;
@@ -129,8 +131,9 @@ class FileWav extends fmt.File {
 							sndDecoder = new DecoderG711u(bps, false);
 						  case 17:
 							trace("File in IMA ADPCM");
-							Readed = -1; return;
-							//sndDecoder = new DecoderIMAADPCM(bps);
+							sndDecoder = new DecoderIMAADPCM(bps, channels, align, W2);
+							align = 0; // hack :(
+							//Readed = -1; return;
 						  case 20:
 							trace("File in G.723 ADPCM");
 							Readed = -1; return;

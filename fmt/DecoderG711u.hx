@@ -32,7 +32,7 @@ class DecoderG711u implements fmt.Decoder {
 		inverted = inv;
 		generate();
 	}
-	public function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
+	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
 		if (inverted) {
 			OutBuf[OutOff] = ulaw[Inv[InBuf[InOff]]];
 		} else {

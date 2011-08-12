@@ -28,7 +28,7 @@ class DecoderPCM implements fmt.Decoder {
 		shift = 1 << bps;
 		sampleLength = 1;
 	}
-	public function decode( InBuf : haxe.io.BytesData, Off: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
+	public function decode( InBuf : haxe.io.BytesData, Off: Int, Chan: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		var Sample: Int = 0;
 		switch (sampleSize) {
 		  case 1: Sample = InBuf[Off];

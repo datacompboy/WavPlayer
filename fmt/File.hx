@@ -123,7 +123,7 @@ class File implements IFile {
 		var chk = 0;
 		while(SoundBuffer[0].length < samples && bufsize - i >= chunkSize) {
 			for(j in 0...channels) {
-				sndDecoder.decode(Buffer, i, SoundBuffer[j], SoundBuffer[j].length);
+				sndDecoder.decode(Buffer, i, j, SoundBuffer[j], SoundBuffer[j].length);
 				i += sndDecoder.sampleSize;
 			}
 			i += align;

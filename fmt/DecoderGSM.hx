@@ -39,7 +39,7 @@ class DecoderGSM implements fmt.Decoder {
 			throw "Unsupported BPS";
 		decoder = new GSMDecoder();
 	}
-	public function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
+	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
 		decoder.decode( InBuf, InOff, OutBuf, OutOff, wavmode );
 		return wavmode ? 320 : 160;
 	}

@@ -23,5 +23,5 @@ interface Decoder {
 	// Number of PCM samples in one input chunk
 	var sampleLength : Int;
 	// Decode one input chunk to PCM samples
-	function decode( InBuf : haxe.io.BytesData, InOff: Int, OutBuf : Array<Float>, OutOff: Int ) : Int;
+	function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int ) : Int;
 }
