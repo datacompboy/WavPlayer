@@ -17,10 +17,7 @@
 package fmt;
 import org.tritonus.lowlevel.gsm.GSMDecoder;
 
-
-class DecoderGSM implements fmt.Decoder {
-	public var sampleSize : Int;
-	public var sampleLength : Int;
+class DecoderGSM extends fmt.Decoder {
 	private var wavmode : Bool;
     private var decoder : GSMDecoder;
 	private var temp : haxe.io.BytesData;
@@ -39,7 +36,7 @@ class DecoderGSM implements fmt.Decoder {
 			throw "Unsupported BPS";
 		decoder = new GSMDecoder();
 	}
-	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
+	public override function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
 		decoder.decode( InBuf, InOff, OutBuf, OutOff, wavmode );
 		return wavmode ? 320 : 160;
 	}

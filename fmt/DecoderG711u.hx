@@ -19,9 +19,7 @@
 // and beautiful code from sox, licensed under GPL
 package fmt;
 
-class DecoderG711u implements fmt.Decoder {
-	public var sampleSize : Int;
-	public var sampleLength : Int;
+class DecoderG711u extends fmt.Decoder {
 	public var inverted : Bool;
 	static var ulaw : Array<Float> = [ ];
 	static var Inv : Array<Int> = [ ];
@@ -32,7 +30,7 @@ class DecoderG711u implements fmt.Decoder {
 		inverted = inv;
 		generate();
 	}
-	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
+	public override function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int) : Int {
 		if (inverted) {
 			OutBuf[OutOff] = ulaw[Inv[InBuf[InOff]]];
 		} else {

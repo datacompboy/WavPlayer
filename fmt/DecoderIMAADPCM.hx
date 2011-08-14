@@ -22,6 +22,7 @@ class IMAADPCM {
 	var step : Int;
 	var proceed : Int;
 	var resync : Int;
+	var spb : Int;
 
     static var ima_index_table : Array<Int> = [
 		-1, -1, -1, -1, 2, 4, 6, 8,
@@ -42,6 +43,7 @@ class IMAADPCM {
 	public function new(samples: Int) {
 		proceed = 0;
 		resync = Std.int((samples+7)/8);
+		spb = samples;
 	}
 
 	function calc(nibble: Int): Float {
@@ -65,6 +67,13 @@ class IMAADPCM {
 		return predictor / 32767.0;
 	}
 
+	public function decodeLength(chunks: Int): Int {
+		var f = Math.floor(chunks / resync);
+		var r = chunks % resync;
+		if (r>0) r = r*8 - 7;
+		return f*spb+r;
+	}
+
 	public function decode( InBuf : haxe.io.BytesData, Off: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		if ((proceed++) % resync == 0) {
 			// Read initial pack
@@ -83,9 +92,7 @@ class IMAADPCM {
 		}
 	}
 }
-class DecoderIMAADPCM implements fmt.Decoder {
-	public var sampleSize : Int;
-	public var sampleLength : Int;
+class DecoderIMAADPCM extends fmt.Decoder {
 	var channels : Array<IMAADPCM>;
 
 	public function new(bps : Int, chans: Int, ?align: Int, ?samplesPerBlock: Int) {
@@ -106,7 +113,11 @@ class DecoderIMAADPCM implements fmt.Decoder {
 		}
 	}
 
-	public function decode( InBuf : haxe.io.BytesData, Off: Int, Chan: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
+	public override function decodeLength(chunks: Int): Int {
+		return channels[0].decodeLength(chunks);
+	}
+
+	public override function decode( InBuf : haxe.io.BytesData, Off: Int, Chan: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		return channels[Chan].decode(InBuf, Off, OutBuf, OutOff);
 	}
 }

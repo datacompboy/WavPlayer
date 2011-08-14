@@ -17,11 +17,26 @@
 package fmt;
 
 // Generic sound-decoder interface.
-interface Decoder {
+interface IDecoder {
 	// Bytes size of one input chunk
 	var sampleSize : Int;
 	// Number of PCM samples in one input chunk
 	var sampleLength : Int;
 	// Decode one input chunk to PCM samples
 	function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int ) : Int;
+	// Return output length based on count of input samples
+	function decodeLength(chunks: Int) : Int;
+}
+
+class Decoder implements IDecoder {
+	public var sampleSize : Int;
+	public var sampleLength : Int;
+	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int ) : Int {
+		throw("Please specify in subclass");
+		return 0;
+	}
+	// Common standard decoder 
+	public function decodeLength(chunks: Int) : Int {
+		return chunks*sampleLength;
+	}
 }

@@ -303,7 +303,7 @@ class WavPlayerGui_Full extends WavPlayerGui {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-    static var Version = "1.8.0beta1";
+    static var Version = "1.8.0";
     static var player : Player;
     static var state : String = PlayerEvent.STOPPED;
     static var handlers : List<JsEventHandler>;

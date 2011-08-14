@@ -87,7 +87,7 @@ class File implements IFile {
 	public function getEtaLength(): Null<Float> {
 		if (rate==0 || chunkSize==0 || dataSize==0) return null;
 		if (dataLen == null && dataSize > 0) 
-			dataLen = Math.floor(dataSize/chunkSize)*sndDecoder.sampleLength/rate;
+			dataLen = sndDecoder.decodeLength(Math.floor(dataSize/chunkSize))/rate;
 		return dataLen;
 	}
 	
@@ -96,7 +96,9 @@ class File implements IFile {
 		if (rate == 0 || chunkSize == 0 || sndDecoder==null)
 			return 0.0;
 		else
-			return Math.floor((bufsize-dataOff)/chunkSize)*sndDecoder.sampleLength / rate;
+			return (bufsize-dataOff > dataLen) 
+					? getEtaLength() 
+					: sndDecoder.decodeLength(Math.floor((bufsize-dataOff)/chunkSize)) / rate;
 	}
 	
 	// Read file header

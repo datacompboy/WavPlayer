@@ -7,7 +7,7 @@ WavPlayer -- flash player for asterisk
     Format | Codecs
     =====================================================================
     .au     G711u, G711a, PCM format, any samplerate/channels
-    .wav    G711u, G711a, PCM, GSM 6.10 (MS) formats, any samplerate/channels
+    .wav    G711u, G711a, PCM, GSM 6.10 (MS), IMA ADPCM formats, any samplerate/channels
      .wav49 just alias of .wav, can content any of wav codecs
     .gsm    raw GSM 6.10
     .sln    raw PCM 16bit-signed 8kHz
