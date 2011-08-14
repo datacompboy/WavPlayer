@@ -96,8 +96,8 @@ class DecoderIMAADPCM implements fmt.Decoder {
 		}
 		sampleSize = 4;
 		sampleLength = 8;
-		if ( (samplesPerBlock-1)/8+1 != align/4) {
-			trace("Unsupported packing");
+		if ( ((samplesPerBlock-1)/8+1)*chans != align/4) {
+			trace("Unsupported packing ("+(((samplesPerBlock-1)/8+1)*chans)+" != "+(align/4)+")");
 			throw "Unsupported packing";
 		}
 		channels = new Array<IMAADPCM>();
