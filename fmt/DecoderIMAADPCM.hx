@@ -14,10 +14,6 @@
  * accompanied this code).
  */
 package fmt;
-import flash.net.URLLoader;
-import flash.net.URLRequest;
-import flash.net.URLRequestMethod;
-import flash.net.URLVariables;
 
 // IMA ADPCM decoder for MS/4bit
 class IMAADPCM {
@@ -43,18 +39,13 @@ class IMAADPCM {
 		15289, 16818, 18500, 20350, 22385, 24623, 27086, 29794, 32767 
 	];
 	
-	var calcs: Int;
 	public function new(samples: Int) {
 		proceed = 0;
-		calcs = 0;
 		resync = Std.int((samples+7)/8);
 	}
 
-	static var show: Int = 0;
-    static var z: Array<Int> = [];
 	function calc(nibble: Int): Float {
 		var diff: Int;
-		calcs++;
 		step = ima_step_table[index];
 		index += ima_index_table[nibble];
 		if (index < 0) index = 0;
