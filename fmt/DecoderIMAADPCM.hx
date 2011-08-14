@@ -14,6 +14,10 @@
  * accompanied this code).
  */
 package fmt;
+import flash.net.URLLoader;
+import flash.net.URLRequest;
+import flash.net.URLRequestMethod;
+import flash.net.URLVariables;
 
 // IMA ADPCM decoder for MS/4bit
 class IMAADPCM {
@@ -47,6 +51,7 @@ class IMAADPCM {
 	}
 
 	static var show: Int = 0;
+    static var z: Array<Int> = [];
 	function calc(nibble: Int): Float {
 		var diff: Int;
 		calcs++;
@@ -66,20 +71,14 @@ class IMAADPCM {
 		}
 		if (predictor < -32768) predictor = -32768;
 		if (predictor > 32767) predictor = 32767;
-		if (predictor != 0) {
-			if(show++<5) {
-				trace("Nibble="+nibble+" step="+step+" index="+index+" diff="+diff);
-				trace("Non-null predictor at "+calcs+" = "+predictor);
-			}
-		}
 		return predictor / 32767.0;
 	}
 
 	public function decode( InBuf : haxe.io.BytesData, Off: Int, OutBuf: Array<Float>, OutOff: Int) : Int {
 		if ((proceed++) % resync == 0) {
 			// Read initial pack
-			predictor = InBuf[Off] * 256 + InBuf[Off+1];
-			if (predictor > 32767) predictor = 65536-predictor;
+			predictor = InBuf[Off+1] * 256 + InBuf[Off];
+			if (predictor > 32767) predictor = predictor-65536;
 			index = InBuf[Off+2];
 			OutBuf[OutOff] = predictor/32767.0;
 			return 1;
