@@ -53,6 +53,7 @@ class Player extends flash.events.EventDispatcher {
         // To-do: re-play already loaded stream
         pitch = new Array<Float>();
         trace("Player for "+fname);
+        var slnrx = ~/[.](sln(\d{1,3}))$/i;
         if ((~/[.]au$/i).match(fname)) {
             Sound = new fmt.FileAu();
         } else
@@ -61,6 +62,9 @@ class Player extends flash.events.EventDispatcher {
         } else
         if ((~/[.](sln|raw)$/i).match(fname)) {
             Sound = new fmt.FileSln();
+        } else
+        if (slnrx.match(fname)) {
+            Sound = new fmt.FileSln(Std.parseInt(slnrx.matched(2)) * 1000);
         } else
         if ((~/[.](alaw|al)$/i).match(fname)) {
             Sound = new fmt.FileAlaw();

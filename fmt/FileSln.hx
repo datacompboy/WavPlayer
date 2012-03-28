@@ -17,9 +17,9 @@ package fmt;
 
 // FileRaw: stream raw file reader. Subclass it to define used sound decoder
 class FileSln extends fmt.FileRaw {
-	public function new() {
+	public function new(?srate : Int = 8000) {
 		super();
-		rate = 8000;
+		rate = srate;
 		channels = 1;
 		chunkSize = 2;
 		align = 0;
