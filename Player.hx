@@ -22,6 +22,8 @@ class Player extends flash.events.EventDispatcher {
     var File : flash.net.URLStream;
     var Sound : fmt.File;
     var Resampler : com.sun.media.sound.SoftAbstractResampler;
+	var mp3Sound : flash.media.Sound;
+	var mp3Channel : flash.media.SoundChannel;
     var pitch : Array<Float>;
     var asink : org.xiph.system.AudioSink;
     var buffer : Array<Array<Float>>;
@@ -32,6 +34,7 @@ class Player extends flash.events.EventDispatcher {
     var timer : flash.utils.Timer;
     var trigger : Null<Float>;
     var pos : Null<Float>;
+	var isMp3 : Bool;
 
     var schtr: SoundTransform;
     public var volume(getVolume, setVolume): Float;
@@ -80,6 +83,11 @@ class Player extends flash.events.EventDispatcher {
         } else
         if ((~/[.]gsm$/i).match(fname)) {
             Sound = new fmt.FileGsm();
+        } else
+        if ((~/[.]mp3$/i).match(fname)) {
+			isMp3 = true;
+            playMp3(fname);
+			return;
         } else {
             trace("Unsupported file type");
             throw "Unsupported file type";
@@ -117,6 +125,47 @@ class Player extends flash.events.EventDispatcher {
         }
     }
 
+	function playMp3(path : String) {
+		try {
+			var request = new flash.net.URLRequest(path);
+			mp3Sound = new flash.media.Sound();
+			mp3Sound.load(request);
+		}
+        catch (error : Dynamic) {
+            trace("Unable to load: "+error);
+            throw error;
+        }
+		
+		
+	    if (mp3Sound != null)
+	    {
+			// Add the event listeners for load progress and load
+			// complete
+			mp3Sound.addEventListener(flash.events.ProgressEvent.PROGRESS, progressHandler);
+			mp3Sound.addEventListener(flash.events.Event.COMPLETE, completeHandler);
+
+			// If there's a channel already
+			if (mp3Channel != null)
+			{
+				mp3Channel.stop();				
+				
+				// Play the music
+				mp3Channel = mp3Sound.play(0);
+			}
+			else {	
+				// Play the music
+				mp3Channel = mp3Sound.play(0);
+				
+				// Add the event listener for sound complete
+				// mp3Channel.addEventListener(flash.events.Event.SOUND_COMPLETE, stoppedEvent);
+							 
+				// Start a timer to show play progress, there's no
+				// play progress event
+				//startPlayTimer();
+			}
+	    }
+	}
+	
     public function setVolume(volume: Float): Float {
         this.schtr.volume=volume;
         trace("setVolume("+volume+")");
@@ -163,12 +212,27 @@ class Player extends flash.events.EventDispatcher {
             trace("Paused pos = "+pos);
             dispatchEvent(new PlayerEvent(PlayerEvent.PAUSED, pos));
         }
+		else if(isMp3) {
+			if (mp3Channel != null)
+			{
+				pos = mp3Channel.position;
+				mp3Channel.stop();
+
+				//if (playTimer != null)
+				//playTimer.stop();
+			}
+		}
         else stop();
     }
     public function resume() {
         trace("Try to resume from"+pos);
         if (pos!=null) {
-            asink.play(pos);
+			if(asink != null) {
+				asink.play(pos);
+			}
+			else if(isMp3) {
+				mp3Channel = mp3Sound.play(pos);
+			}
         }
         else play();
     }
@@ -184,6 +248,10 @@ class Player extends flash.events.EventDispatcher {
                 // timeout handler will populate from new pos when ready
             }
         }
+		else if(isMp3) {
+			mp3Channel.stop();
+			mp3Channel = mp3Sound.play(pos);
+		}
     }
     
     public function stop() {
@@ -192,6 +260,11 @@ class Player extends flash.events.EventDispatcher {
             trace("Stopped position = "+pos);
             asink = null;
         }
+		else if(isMp3) {
+			trace("Stopped position = "+mp3Channel.position);
+			mp3Channel.stop();
+		}	
+		
         if (File != null) {
             File.close();
             File = null;
@@ -211,7 +284,7 @@ class Player extends flash.events.EventDispatcher {
         trace("progressHandler: " + event);
         if (first) {
             first = false;
-            if (event.bytesTotal>0)
+            if (event.bytesTotal > 0 && Sound != null)
                 Sound.setSize(Std.int(event.bytesTotal));
         }
         dispatchEvent(event); // here we fire byte progress
