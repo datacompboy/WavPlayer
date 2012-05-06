@@ -18,7 +18,7 @@ import flash.media.SoundTransform;
 // Main player class: loads stream, process it by appropriate file decoder,
 // that will initialize correct sound decoder. Decoded audio samples 
 // resample to 44100 and play via AudioSink
-class Player extends flash.events.EventDispatcher {
+class Player extends flash.events.EventDispatcher, implements IPlayer {
     var File : flash.net.URLStream;
     var Sound : fmt.File;
     var Resampler : com.sun.media.sound.SoftAbstractResampler;

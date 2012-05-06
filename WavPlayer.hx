@@ -303,8 +303,10 @@ class WavPlayerGui_Full extends WavPlayerGui {
 
 // Main user interface: play / stop buttons & ExternalInterface
 class WavPlayer {
-    static var Version = "1.8.0";
-    static var player : Player;
+    static var Version = "1.9.0";
+    static var player : IPlayer;
+	static var wavplayer : Player;
+	static var mp3player : Mp3Player;
     static var state : String = PlayerEvent.STOPPED;
     static var handlers : List<JsEventHandler>;
     static var handlerId : Int;
@@ -364,18 +366,11 @@ class WavPlayer {
         trace("WavPlayer - gui started " + iface);
 
         iface.drawStopped();
-
-        player = new Player(fvs.sound);
-        player.addEventListener(PlayerEvent.BUFFERING, handleBuffering);
-        player.addEventListener(PlayerEvent.PLAYING, handlePlaying);
-        player.addEventListener(PlayerEvent.STOPPED, handleStopped);
-        player.addEventListener(PlayerEvent.PAUSED, handlePaused);
-        player.addEventListener(flash.events.ProgressEvent.PROGRESS, handleProgress);
-        player.addEventListener(flash.events.IOErrorEvent.IO_ERROR, handleError);
-        player.addEventListener(PlayerLoadEvent.LOAD, handleLoad);
+		
+		initPlayerForUrl(fvs.sound);		
         player.volume = volume;
         player.pan = pan;
-
+		
         if( !flash.external.ExternalInterface.available )
             throw "External Interface not available";
         try flash.external.ExternalInterface.addCallback("getVersion",doGetVer) catch( e : Dynamic ) {};
@@ -413,6 +408,38 @@ class WavPlayer {
         else
             flash.external.ExternalInterface.call("onWavPlayerReady", flash.external.ExternalInterface.objectID);
     }
+	
+	static function initPlayerForUrl(?path: String) {
+		if(path == null && player != null) return;
+		
+		if(path != null && (~/[.]mp3$/i).match(path)) {
+			if(mp3player == null) {
+				mp3player = new Mp3Player(path);
+				AddPlayerEventListeners(mp3player);
+			}
+			player = mp3player;
+        }
+		else {
+			if(wavplayer == null) {
+				wavplayer = new Player(path);
+				AddPlayerEventListeners(wavplayer);
+			}
+			player = wavplayer;
+		}
+	}	
+	
+	static function AddPlayerEventListeners(dispatcher: flash.events.EventDispatcher) {		
+        dispatcher.addEventListener(PlayerEvent.BUFFERING, handleBuffering);
+        dispatcher.addEventListener(PlayerEvent.PLAYING, handlePlaying);
+        dispatcher.addEventListener(PlayerEvent.STOPPED, handleStopped);
+        dispatcher.addEventListener(PlayerEvent.PAUSED, handlePaused);
+		
+        dispatcher.addEventListener(flash.events.ProgressEvent.PROGRESS, handleProgress);
+        dispatcher.addEventListener(flash.events.IOErrorEvent.IO_ERROR, handleError);
+		
+        dispatcher.addEventListener(PlayerLoadEvent.LOAD, handleLoad);
+	}
+	
     static function handleSeeking(event:WavPlayerGuiEvent) {
         player.seek(event.position);
     }
@@ -487,7 +514,10 @@ class WavPlayer {
         player.stop();
         lastNotifyProgress = 0;
         lastNotifyLoad = 0;
-        iface.setPosition(0); 
+        iface.setPosition(0);
+		
+		initPlayerForUrl(fname);
+		
         player.play(fname, buffer);
     }
     static function doStop( ) {
