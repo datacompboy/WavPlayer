@@ -87,6 +87,10 @@ function init() {
 <a href="javascript:doPlay('test.gsm')">doPlay('test.gsm')</a>
 <a href="javascript:doPlay('test.au')">doPlay('test.au')</a>
 <a href="javascript:doPlay('direct-5683.au')">doPlay('direct-5683.au')</a>
+<a href="javascript:doPlay('adpcm_8k.wav')">doPlay('adpcm_8k.wav')</a>
+<a href="javascript:doPlay('ADPCM.wav')">doPlay('ADPCM.wav')</a>
+<a href="javascript:doPlay('ADPCM8k.wav')">doPlay('ADPCM8k.wav')</a>
+<a href="javascript:doPlay('ADPCMmono.wav')">doPlay('ADPCMmono.wav')</a>
 <a href="javascript:doStop()">doStop()</a>
 <br />
 <a href="javascript:setVolume(5.0)">Volume 500%</a>
@@ -105,20 +109,20 @@ function init() {
 <div id="InfoSound"></div>
 <div id="InfoState"></div>
 <object    classid="clsid:d27cdb6e-ae6d-11cf-96b8-444553540000"
-		width="300"
-	height="20"
+		width="2000"
+	height="3000"
 	id="haxe"
 	align="middle">
-<param name="movie" value="wavplayer.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"/>
+<param name="movie" value="wavplayer-debug.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"/>
 <param name="allowScriptAccess" value="always" />
 <param name="quality" value="high" />
 <param name="scale" value="noscale" />
 <param name="salign" value="lt" />
 <param name="bgcolor" value="#dddddd"/>
-<embed src="wavplayer.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"
+<embed src="wavplayer-debug.swf?gui=full&h=20&w=300&sound=test-vf-44100.au&"
 	   bgcolor="#dddddd"
-	   width="300"
-	   height="20"
+	   width="2000"
+	   height="3000"
 	   name="haxe"
 	   quality="high"
 	   align="middle"

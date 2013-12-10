@@ -37,9 +37,9 @@ class AudioSink extends flash.events.EventDispatcher {
     var fill : Bool;
     var size : Int;
     public var pos : Float;
-    public var volume(getVolume, setVolume): Float;
-    public var pan(getPan, setPan): Float;
-    public var soundTransform(getST, setST): SoundTransform;
+    public var volume(get_volume, set_volume): Float;
+    public var pan(get_pan, set_pan): Float;
+    public var soundTransform(get_soundTransform, set_soundTransform): SoundTransform;
 
     var s : Sound;
     var sch : SoundChannel;
@@ -66,27 +66,27 @@ class AudioSink extends flash.events.EventDispatcher {
         sch = null;
     }
 
-    public function setVolume(volume: Float): Float {
+    public function set_volume(volume: Float): Float {
         this.schtr.volume=volume;
         this.soundTransform = this.soundTransform;
         return volume;
     }
 
-    public function getVolume(): Float {
+    public function get_volume(): Float {
         return this.schtr.volume;
     }
 
-    public function setPan(pan: Float): Float {
+    public function set_pan(pan: Float): Float {
         this.schtr.pan=pan;
         this.soundTransform = this.soundTransform;
         return this.schtr.pan;
     }
 
-    public function getPan(): Float {
+    public function get_pan(): Float {
         return this.schtr.pan;
     }
 
-    public function setST(st: SoundTransform): SoundTransform {
+    public function set_soundTransform(st: SoundTransform): SoundTransform {
         this.schtr = st;
         if (this.sch!=null) {
             this.sch.soundTransform = this.schtr;
@@ -94,7 +94,7 @@ class AudioSink extends flash.events.EventDispatcher {
         return this.schtr;
     }
 
-    public function getST(): SoundTransform {
+    public function get_soundTransform(): SoundTransform {
         return this.schtr;
     }
 

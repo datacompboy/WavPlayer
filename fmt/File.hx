@@ -140,12 +140,13 @@ class File implements IFile {
 	public function seek(Pos: Float): Float {
 		if (ready() != 1) return 0;
 		var sample = Math.ceil( Pos * rate ); // Wanted sample number
-		var chunk = Math.ceil( sample / sndDecoder.sampleLength ); // Wanted sample chunk
+		var chunk = sndDecoder.seek(Math.ceil( sample / sndDecoder.sampleLength )); // Wanted sample chunk
 		var offset = chunk * chunkSize + dataOff; // Offset, where to seek
 		if (offset > bufsize) // Round to maximal ready
-			offset = Math.ceil( (bufsize - dataOff) / chunkSize ) * chunkSize + dataOff;
+			offset = Math.floor( (bufsize - dataOff) / chunkSize ) * chunkSize + dataOff;
 		Readed = offset; // Seek to required offset
-		sample = Math.ceil( (offset - dataOff) / chunkSize ); // Get final selected sample
+		sample = Math.ceil( (offset - dataOff) / chunkSize ) * sndDecoder.sampleLength; // Get final selected sample
+        trace("Sync to Pos "+Pos+"; sample = "+sample+"; offset="+offset+"; res="+(sample/rate));
 		return sample / rate;
 	}
 	

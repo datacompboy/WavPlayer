@@ -22,6 +22,9 @@ interface IDecoder {
 	var sampleSize : Int;
 	// Number of PCM samples in one input chunk
 	var sampleLength : Int;
+	// Seek decoder to required chunk
+	// Returns initial seek position required for decoder to sync state
+	public function seek ( chunk: Int ) : Int;
 	// Decode one input chunk to PCM samples
 	function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int ) : Int;
 	// Return output length based on count of input samples
@@ -34,6 +37,10 @@ class Decoder implements IDecoder {
 	public function decode( InBuf : haxe.io.BytesData, InOff: Int, Chan: Int, OutBuf : Array<Float>, OutOff: Int ) : Int {
 		throw("Please specify in subclass");
 		return 0;
+	}
+	// Most of decoders have no problem with that
+	public function seek ( chunk: Int ) : Int {
+		return chunk;
 	}
 	// Common standard decoder 
 	public function decodeLength(chunks: Int) : Int {

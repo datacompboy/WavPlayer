@@ -15,9 +15,9 @@ class Mp3Player extends flash.events.EventDispatcher, implements IPlayer {
 	var playTimer : flash.utils.Timer;
 
     var schtr: SoundTransform;
-    public var volume(getVolume, setVolume): Float;
-    public var pan(getPan, setPan): Float;
-    public var soundTransform(getST, setST): SoundTransform;
+    public var volume(get_volume, set_volume): Float;
+    public var pan(get_pan, set_pan): Float;
+    public var soundTransform(get_soundTransform, set_soundTransform): SoundTransform;
 
     public function new(?path : String) {
         super();
@@ -81,28 +81,28 @@ class Mp3Player extends flash.events.EventDispatcher, implements IPlayer {
 	    }
 	}
 	
-    public function setVolume(volume: Float): Float {
+    public function set_volume(volume: Float): Float {
         this.schtr.volume = volume;
-        trace("mp3 setVolume(" + volume + ")");
+        trace("mp3 set_volume(" + volume + ")");
         this.soundTransform = this.soundTransform; // Apply changes
         return volume;
     }
 
-    public function getVolume(): Float {
+    public function get_volume(): Float {
         return this.schtr.volume;
     }
 
-    public function setPan(pan: Float): Float {
+    public function set_pan(pan: Float): Float {
         this.schtr.pan = pan;
         this.soundTransform = this.soundTransform; // Apply changes
         return this.schtr.pan;
     }
 
-    public function getPan(): Float {
+    public function get_pan(): Float {
         return this.schtr.pan;
     }
 
-    public function setST(st: SoundTransform): SoundTransform {
+    public function set_soundTransform(st: SoundTransform): SoundTransform {
         this.schtr = st;
         if (this.channel != null) {
             this.channel.soundTransform = this.schtr;
@@ -110,7 +110,7 @@ class Mp3Player extends flash.events.EventDispatcher, implements IPlayer {
         return this.schtr;
     }
 
-    public function getST(): SoundTransform {
+    public function get_soundTransform(): SoundTransform {
         return this.schtr;
     }
 

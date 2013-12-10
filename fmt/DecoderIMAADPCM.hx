@@ -46,6 +46,11 @@ class IMAADPCM {
 		spb = samples;
 	}
 
+	public function reset(): Int {
+		proceed = 0;
+		return resync;
+	}
+
 	function calc(nibble: Int): Float {
 		var diff: Int;
 		step = ima_step_table[index];
@@ -113,6 +118,16 @@ class DecoderIMAADPCM extends fmt.Decoder {
 		}
 	}
 
+	public override function seek ( chunk: Int ) : Int {
+		var chu: Int;
+		var res: Int = 1;
+		for (channel in channels) {
+			res = channel.reset();
+		}
+		chu = Math.floor(chunk / res) * res;
+		return chu;
+	}
+
 	public override function decodeLength(chunks: Int): Int {
 		return channels[0].decodeLength(chunks);
 	}
@@ -121,3 +136,4 @@ class DecoderIMAADPCM extends fmt.Decoder {
 		return channels[Chan].decode(InBuf, Off, OutBuf, OutOff);
 	}
 }
+
