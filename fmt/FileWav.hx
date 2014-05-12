@@ -106,7 +106,8 @@ class FileWav extends fmt.File {
 						trace("Appendix W1="+W1+", W2="+W2+", DW="+DW);
 					}
 					i += 4;
-					if (i-dataOff == dataSize+8) {
+					if (i-dataOff >= dataSize+8) {
+                        i = dataSize+8 + dataOff; // Workaround for non-round fmt section
 						if (channels < 1 || channels > 2) {
 							trace("Wrong number of channels: "+channels);
 							Readed = -1;
