@@ -1,5 +1,7 @@
 WavPlayer -- flash player for asterisk
 
+* Note: Use Haxe-2 to compile.
+
     WavPlayer is flash player, designed to play files, recorded for and 
     by Asterisk (www.asterisk.org) or any other telephone system.
 
